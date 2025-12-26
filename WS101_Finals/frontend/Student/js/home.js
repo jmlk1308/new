@@ -9,14 +9,14 @@ const cardTrack = document.getElementById('card-track');
 const textContent = document.getElementById('text-content');
 
 // This points to your root uploads folder served by Spring Boot
-const IMG_BASE_URL = "http://localhost:8080/uploads/";
+const IMG_BASE_URL = "http://interactive-learning-hub.up.railway.app/uploads/";
 
 // ==========================================
 // 2. DATA FETCHING & PROCESSING
 // ==========================================
 async function fetchCourses() {
     try {
-        const response = await fetch('http://localhost:8080/api/admin/courses');
+        const response = await fetch('http://interactive-learning-hub.up.railway.app/api/admin/courses');
         if (!response.ok) throw new Error("Failed to fetch courses");
 
         const dbCourses = await response.json();
