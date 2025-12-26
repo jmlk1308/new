@@ -1,41 +1,56 @@
 const API_URL = "http://localhost:8080/api/professor";
 const USER_KEY = 'user';
-let selectedFile = null; // Store selected image file
+let selectedFile = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    const user = JSON.parse(localStorage.getItem(USER_KEY));
-    if (!user || user.role !== 'professor') {
-        alert("Access Denied. Please Login.");
+    // 1. SECURITY GUARD
+    const userJson = localStorage.getItem(USER_KEY);
+
+    // If no user is logged in
+    if (!userJson) {
+        alert("Session expired. Please login.");
         window.location.href = '../Student/student-login.html';
         return;
     }
 
-    // ✅ 1. Load Profile Info (Name & Image)
+    const user = JSON.parse(userJson);
+
+    // Case-Insensitive Check
+    if (user.role.toLowerCase() !== 'professor') {
+        alert("Access Denied: You are not a Professor.");
+        window.location.href = '../Student/student-login.html';
+        return;
+    }
+
+    // 2. Load Initial Data
     loadUserProfile(user);
 
-    // Existing Dashboard Logic
+    // Load Dashboard Stats
     if (document.getElementById('totalStudents')) loadDashboardStats(user.courseId);
+
+    // Load Tables
     if (document.getElementById('quizTable')) loadQuizzes();
     if (document.getElementById('lessonTable')) loadLessons();
 
+    // Initialize Dropdowns
     initializeDropdowns(user.courseId);
+
+    // Setup Listeners
     setupEventListeners(user);
     setupModuleToggle();
 });
 
-// ✅ 2. NEW: Load User Profile into Sidebar
+// ==========================================
+// EXISTING PROFILE FUNCTIONS
+// ==========================================
 function loadUserProfile(user) {
-    // Set Name
     const nameEl = document.getElementById('sidebar-profile-name');
     if (nameEl) nameEl.innerText = `Prof. ${user.username}`;
-
-    // Set Image if exists
     if (user.profileImage) {
         updateSidebarImage(`http://localhost:8080/uploads/${user.profileImage}`);
     }
 }
 
-// ✅ 3. NEW: Update Image UI Helper
 function updateSidebarImage(src) {
     const img = document.getElementById('sidebar-profile-img');
     const placeholder = document.getElementById('sidebar-profile-placeholder');
@@ -46,28 +61,22 @@ function updateSidebarImage(src) {
     }
 }
 
-// ✅ 4. NEW: Modal Logic - Open
 function openProfileModal() {
     const user = JSON.parse(localStorage.getItem(USER_KEY));
     if (user) {
         document.getElementById('profile-username').value = user.username;
-
         const modalImg = document.getElementById('modal-profile-img');
         const placeholder = document.getElementById('modal-profile-placeholder');
 
-        if (user.profileImage) {
+        if (modalImg && user.profileImage) {
             modalImg.src = `http://localhost:8080/uploads/${user.profileImage}`;
             modalImg.style.display = 'block';
-            placeholder.style.display = 'none';
-        } else {
-            modalImg.style.display = 'none';
-            placeholder.style.display = 'flex';
+            if(placeholder) placeholder.style.display = 'none';
         }
     }
     document.getElementById('profileModal').style.display = 'flex';
 }
 
-// ✅ 5. NEW: Modal Logic - Preview Image
 function handleImagePreview(input) {
     if (input.files && input.files[0]) {
         selectedFile = input.files[0];
@@ -75,15 +84,16 @@ function handleImagePreview(input) {
         reader.onload = function(e) {
             const modalImg = document.getElementById('modal-profile-img');
             const placeholder = document.getElementById('modal-profile-placeholder');
-            modalImg.src = e.target.result;
-            modalImg.style.display = 'block';
-            placeholder.style.display = 'none';
+            if(modalImg) {
+                modalImg.src = e.target.result;
+                modalImg.style.display = 'block';
+            }
+            if(placeholder) placeholder.style.display = 'none';
         }
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-// ✅ 6. NEW: Save Changes (Username, Password, Photo)
 async function saveProfileChanges() {
     const user = JSON.parse(localStorage.getItem(USER_KEY));
     const newUsername = document.getElementById('profile-username').value;
@@ -122,9 +132,6 @@ async function saveProfileChanges() {
             if (res.ok) {
                 const updatedUser = await res.json();
                 user.username = updatedUser.username;
-                if(newPassword) user.password = newPassword;
-
-                // Update UI
                 loadUserProfile(user);
                 alert("Profile updated successfully!");
             } else {
@@ -140,11 +147,10 @@ async function saveProfileChanges() {
         alert("Profile picture updated!");
     }
 
-    // Save & Close
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     document.getElementById('profileModal').style.display = 'none';
     selectedFile = null;
-    document.getElementById('profile-password').value = "";
+    if(document.getElementById('profile-password')) document.getElementById('profile-password').value = "";
 }
 
 function logout() {
@@ -155,6 +161,9 @@ function logout() {
     }
 }
 
+// ==========================================
+// EXISTING DASHBOARD & TABLE FUNCTIONS
+// ==========================================
 async function loadDashboardStats(courseId) {
     try {
         const res = await fetch(`${API_URL}/stats?courseId=${courseId || ''}`);
@@ -192,22 +201,15 @@ async function deleteQuiz(id) {
     } catch (err) { alert("Error deleting quiz"); }
 }
 
-//
-
 async function loadLessons() {
     const tableBody = document.querySelector('#lessonTable tbody');
     if (!tableBody) return;
-
-    // Get user from storage to access their courseId
     const user = JSON.parse(localStorage.getItem(USER_KEY));
-
     tableBody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
 
     try {
-        // ✅ FIX: Pass the courseId in the URL
         const res = await fetch(`${API_URL}/materials?courseId=${user.courseId}`);
         const lessons = await res.json();
-
         tableBody.innerHTML = '';
         if (lessons.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No lessons found.</td></tr>';
@@ -219,7 +221,7 @@ async function loadLessons() {
                 <tr>
                     <td>${l.title}</td>
                     <td>${l.subjectCode}</td>
-                    <td>${l.type.toUpperCase()}</td>
+                    <td>${l.type ? l.type.toUpperCase() : 'FILE'}</td>
                     <td>Module ${l.moduleId || '-'}</td>
                     <td class="action-icons">
                         <i class="fa-solid fa-trash" style="color:red; cursor:pointer;" onclick="deleteLesson(${l.id})"></i>
@@ -237,6 +239,9 @@ async function deleteLesson(id) {
     } catch (err) { alert("Error deleting lesson"); }
 }
 
+// ==========================================
+// DROPDOWNS & FORM LOGIC
+// ==========================================
 async function initializeDropdowns(courseId) {
     const courseSelect = document.getElementById('courseSelect');
     if (courseSelect) {
@@ -248,6 +253,7 @@ async function initializeDropdowns(courseId) {
         }
     }
 
+    // Load subjects for multiple pages
     const subjectSelects = document.querySelectorAll('#subjectSelect, #quiz-subject, #subject-code');
     if (subjectSelects.length > 0 && courseId) {
         try {
@@ -262,9 +268,10 @@ async function initializeDropdowns(courseId) {
                     select.appendChild(opt);
                 });
             });
-            const uploadSubjectSelect = document.getElementById('subjectSelect');
-            if (uploadSubjectSelect) {
-                uploadSubjectSelect.addEventListener('change', loadModulesForSubject);
+            // Attach listener specifically for the Upload page
+            const uploadSelect = document.getElementById('subjectSelect');
+            if (uploadSelect) {
+                uploadSelect.addEventListener('change', loadModulesForSubject);
             }
         } catch (err) { console.error(err); }
     }
@@ -297,13 +304,17 @@ function setupModuleToggle() {
             const isHidden = newModuleFields.style.display === 'none';
             newModuleFields.style.display = isHidden ? 'block' : 'none';
             if (isHidden) {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-times"></i> Cancel';
-                toggleBtn.style.background = '#dc2626';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> New';
                 moduleSelect.disabled = true;
                 moduleSelect.value = "";
+                // Reset styling to primary
+                toggleBtn.classList.remove('btn-danger');
+                toggleBtn.classList.add('btn-primary');
             } else {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> New';
-                toggleBtn.style.background = '#2563EB';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-times"></i> Cancel';
+                // Change style to indicate cancel
+                toggleBtn.style.background = '#dc2626';
+                toggleBtn.style.color = 'white';
                 moduleSelect.disabled = false;
             }
         });
@@ -311,7 +322,7 @@ function setupModuleToggle() {
 }
 
 function setupEventListeners(user) {
-    // A. Create Quiz Form
+    // 1. Create Quiz Form
     const quizForm = document.getElementById('createQuizForm');
     if (quizForm) {
         quizForm.addEventListener('submit', async (e) => {
@@ -335,7 +346,7 @@ function setupEventListeners(user) {
         });
     }
 
-    // ✅ B. UPLOAD FORM (Matches the ID in HTML)
+    // 2. Upload Lesson Form
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
@@ -345,7 +356,7 @@ function setupEventListeners(user) {
             const moduleSelect = document.getElementById('moduleSelect');
 
             let finalModuleId = moduleSelect.value;
-            const isNewModule = document.getElementById('newModuleFields').style.display === 'block';
+            const isNewModule = document.getElementById('newModuleFields') && document.getElementById('newModuleFields').style.display === 'block';
 
             if (isNewModule) {
                 const newModNum = document.getElementById('newModNum').value;
@@ -384,3 +395,83 @@ function setupEventListeners(user) {
         });
     }
 }
+
+// ==========================================
+// ✅ NEW: MODULE MANAGER LOGIC (ADDED)
+// ==========================================
+window.openModuleModalFromUpload = function() {
+    const subjectSelect = document.getElementById('subjectSelect');
+    if (!subjectSelect || !subjectSelect.value) {
+        alert("Please select a subject first.");
+        return;
+    }
+    openModuleManager(subjectSelect.value);
+};
+
+window.closeModuleModal = function() {
+    document.getElementById('moduleModal').style.display = 'none';
+
+    // Trigger change event to refresh the dropdown with updated list
+    const subjectSelect = document.getElementById('subjectSelect');
+    if(subjectSelect) subjectSelect.dispatchEvent(new Event('change'));
+};
+
+window.openModuleManager = async function(subjectCode) {
+    const modal = document.getElementById('moduleModal');
+    const listBody = document.getElementById('moduleListBody');
+    const titleEl = document.getElementById('modalSubjectTitle');
+
+    if(!modal || !listBody) return;
+
+    modal.style.display = 'flex';
+    if(titleEl) titleEl.innerText = `Subject: ${subjectCode}`;
+    listBody.innerHTML = '<tr><td style="padding:15px; text-align:center;">Loading...</td></tr>';
+
+    try {
+        const res = await fetch(`http://localhost:8080/api/admin/modules?subjectCode=${subjectCode}`);
+        const modules = await res.json();
+
+        listBody.innerHTML = '';
+
+        if (modules.length === 0) {
+            listBody.innerHTML = '<tr><td style="padding:15px; text-align:center;">No modules found.</td></tr>';
+            return;
+        }
+
+        modules.forEach(mod => {
+            const row = `
+            <tr style="border-bottom: 1px solid #f3f4f6;">
+                <td style="padding: 12px; font-weight: 500;">Module ${mod.moduleNumber}: ${mod.title}</td>
+                <td style="padding: 12px; text-align: right;">
+                    <button onclick="deleteModule(${mod.id}, '${subjectCode}')"
+                            style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                        Delete
+                    </button>
+                </td>
+            </tr>`;
+            listBody.innerHTML += row;
+        });
+
+    } catch (e) {
+        console.error(e);
+        listBody.innerHTML = '<tr><td style="color:red; padding:15px;">Error loading data.</td></tr>';
+    }
+};
+
+window.deleteModule = async function(moduleId, subjectCode) {
+    if(!confirm("Delete this module? It will be removed from the student roadmap.")) return;
+
+    try {
+        const res = await fetch(`${API_URL}/modules/${moduleId}`, { method: 'DELETE' });
+
+        if (res.ok) {
+            // Refresh list
+            openModuleManager(subjectCode);
+        } else {
+            alert("Failed to delete module.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Server Error");
+    }
+};

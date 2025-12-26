@@ -26,17 +26,19 @@ public class AuthController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
-        User user = userRepository.findAll().stream()
-                .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
-                .findFirst()
-                .orElse(null);
+        // 1. Find user directly from Database (Faster)
+        User user = userRepository.findByUsername(username);
 
-        if (user != null) {
-            // Log the activity
+        // 2. Check if user exists AND password matches
+        if (user != null && user.getPassword().equals(password)) {
+
+            // 3. Log the login
             logRepository.save(new ActivityLog(user.getUsername(), "User Logged In", user.getRole()));
+
+            // 4. Return the user info
             return ResponseEntity.ok(user);
         } else {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(401).body("Invalid username or password");
         }
     }
 
@@ -44,37 +46,34 @@ public class AuthController {
     //
 // ... inside AuthController class ...
 
+    // ==========================================
+    // ✅ ADD THIS MISSING METHOD TO FIX SAVING
+    // ==========================================
     @PutMapping("/users/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, String> updates) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // 1. Handle Username Change
+        // Update Username if provided
         if (updates.containsKey("username")) {
-            String newUsername = updates.get("username");
-            if (newUsername != null && !newUsername.trim().isEmpty() && !newUsername.equals(user.getUsername())) {
-                // Check if username is already taken by ANOTHER user
-                User existing = userRepository.findByUsername(newUsername);
-                if (existing != null && !existing.getId().equals(id)) {
-                    return ResponseEntity.badRequest().body("Username already exists.");
-                }
-                user.setUsername(newUsername);
-            }
+            user.setUsername((String) updates.get("username"));
         }
 
-        // 2. Handle Password Change
+        // Update Password if provided (and not empty)
         if (updates.containsKey("password")) {
-            String newPassword = updates.get("password");
-            if (newPassword != null && !newPassword.trim().isEmpty()) {
-                user.setPassword(newPassword);
+            String newPass = (String) updates.get("password");
+            if (newPass != null && !newPass.trim().isEmpty()) {
+                user.setPassword(newPass);
             }
         }
 
         userRepository.save(user);
 
-        // Return the updated user object so frontend can update localStorage
+        // Log the action
+        logRepository.save(new ActivityLog(user.getUsername(), "Updated Profile", user.getRole()));
+
         return ResponseEntity.ok(user);
     }
 

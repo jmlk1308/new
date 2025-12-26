@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Interactive Learning Hub</title>
+    <title>Login - CS Learning Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body {
-            background: #1a202c;
+            background-color: #f3f4f6;
             height: 100vh;
             display: flex;
             align-items: center;
@@ -17,105 +16,159 @@
         }
         .login-card {
             background: white;
-            padding: 40px;
+            padding: 2.5rem;
             border-radius: 12px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .brand-title {
             text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 0.5rem;
         }
-        .login-card h2 { color: #2d3748; margin-bottom: 20px; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 8px; color: #4a5568; font-weight: 600; }
-        .form-control {
-            width: 100%; padding: 12px; border: 2px solid #e2e8f0;
-            border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s;
+        .brand-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
-        .form-control:focus { border-color: #3182ce; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 500; font-size: 0.9rem; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
         .btn-login {
-            width: 100%; padding: 12px; background: #3182ce; color: white;
-            border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
-            cursor: pointer; transition: 0.2s;
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
         }
-        .btn-login:hover { background: #2b6cb0; }
-        .error-msg { color: red; font-size: 0.9rem; margin-top: 10px; display: none; }
+        .btn-login:hover { background-color: #1d4ed8; }
+        .btn-login:disabled { background-color: #93c5fd; cursor: not-allowed; }
+
+        .error-msg {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
     </style>
 </head>
 <body>
 
 <div class="login-card">
-    <h2><i class="fas fa-graduation-cap"></i> Login</h2>
+    <div class="brand-title">Welcome Back</div>
+    <div class="brand-subtitle">Sign in to access your dashboard</div>
+
+    <div id="errorText" class="error-msg"></div>
+
     <form id="loginForm">
         <div class="form-group">
-            <label>ID Number / Username</label>
-            <input type="text" id="idNumber" class="form-control" placeholder="Enter ID" required>
+            <label>Username</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" class="form-input" placeholder="Enter username" required>
+            </div>
         </div>
+
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="password" class="form-control" placeholder="Enter Password" required>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+            </div>
         </div>
-        <button type="submit" class="btn-login">Sign In</button>
-        <p id="error-text" class="error-msg"></p>
+
+        <button type="submit" id="loginBtn" class="btn-login">Sign In</button>
     </form>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById('loginForm');
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // 1. STOP PAGE RELOAD
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        const usernameIn = document.getElementById('username').value;
+        const passwordIn = document.getElementById('password').value;
+        const errorEl = document.getElementById('errorText');
+        const btn = document.getElementById('loginBtn');
 
-            const idNumber = document.getElementById('idNumber').value;
-            const password = document.getElementById('password').value;
-            const errorText = document.getElementById('error-text');
+        // Reset UI
+        errorEl.style.display = 'none';
+        btn.innerText = "Signing in...";
+        btn.disabled = true;
 
-            if(errorText) errorText.style.display = 'none';
+        try {
+            // 2. SEND LOGIN REQUEST
+            const response = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: usernameIn, password: passwordIn })
+            });
 
-            try {
-                const response = await fetch('http://localhost:8080/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: idNumber, password: password })
-                });
+            if (response.ok) {
+                // 3. SUCCESS: SAVE USER
+                const user = await response.json();
+                localStorage.setItem('user', JSON.stringify(user));
 
-                if (response.ok) {
-                    const user = await response.json();
-                    localStorage.setItem('user', JSON.stringify(user));
-
-                    // ✅ FIXED PATHS BELOW:
-                    if (user.role === 'admin') {
-                        // Go UP (../) out of Student folder, then into Admin folder
-                        window.location.href = '../Admin/admin.html';
-                    } else if (user.role === 'professor') {
-                        // Go UP (../) out of Student folder, then into Teaching_Staff folder
-                        window.location.href = '../Teaching_Staff/professor-dashboard.html';
-                    } else {
-                        // Student is in the same folder, so this is fine
-                        window.location.href = 'index.html';
-                    }
-
-                } else {
-                    const msg = await response.text();
-                    if(errorText) {
-                        errorText.innerText = "Login Failed: " + msg;
-                        errorText.style.display = 'block';
-                    } else {
-                        alert("Login Failed: " + msg);
-                    }
+                // 4. REDIRECT BASED ON ROLE
+                // NOTE: The '../' moves UP one folder level.
+                if (user.role === 'admin') {
+                    window.location.href = '../Admin/admin.html';
+                }
+                else if (user.role === 'professor') {
+                    window.location.href = '../Teaching_Staff/professor-dashboard.html';
+                }
+                else {
+                    // Student stays in the current folder structure
+                    window.location.href = 'index.html';
                 }
 
-            } catch (error) {
-                console.error("Login Error:", error);
-                if(errorText) {
-                    errorText.innerText = "Cannot connect to server.";
-                    errorText.style.display = 'block';
-                }
+            } else {
+                // 5. FAIL: SHOW ERROR
+                const msg = await response.text();
+                errorEl.innerText = msg || "Invalid username or password";
+                errorEl.style.display = 'block';
+                btn.innerText = "Sign In";
+                btn.disabled = false;
             }
-        });
-    }
-});
+
+        } catch (error) {
+            console.error("Login Error:", error);
+            errorEl.innerText = "Cannot connect to server. Is the backend running?";
+            errorEl.style.display = 'block';
+            btn.innerText = "Sign In";
+            btn.disabled = false;
+        }
+    });
 </script>
 
 </body>

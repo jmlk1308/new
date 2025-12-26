@@ -218,4 +218,23 @@ public class ProfessorController {
         if (name.endsWith(".doc") || name.endsWith(".docx")) return "doc";
         return "file";
     }
+
+    // ==========================================
+    // ✅ ADD THIS: DELETE MODULE ENDPOINT
+    // ==========================================
+    @DeleteMapping("/modules/{id}")
+    public ResponseEntity<?> deleteModule(@PathVariable Long id) {
+        try {
+            if (!moduleRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            // Optional: Delete all materials inside this module first?
+            // For now, we just delete the module. Materials will become "orphan" or you can delete them too.
+            moduleRepository.deleteById(id);
+
+            return ResponseEntity.ok("Module deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error deleting module: " + e.getMessage());
+        }
+    }
 }
