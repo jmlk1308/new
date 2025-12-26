@@ -1,5 +1,5 @@
 # 1. Build Stage (Uses Railway's Gradle, ignores your local gradlew file)
-FROM gradle:8.5-jdk17 AS build
+FROM gradle:8.5-jdk25 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 # Build using the global gradle command
