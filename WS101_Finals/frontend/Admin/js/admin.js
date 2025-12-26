@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080/api/admin";
+const API_URL = "http://interactive-learning-hub.up.railway.app/api/admin";
 
 // State Variables
 let isEditCourseMode = false;
@@ -186,7 +186,7 @@ async function loadCourses() {
             // If course has image, use it
             if (course.image) {
                 let cleanImage = course.image.replace('uploads/', '');
-                const imageUrl = `http://localhost:8080/uploads/${cleanImage}`;
+                const imageUrl = `http://interactive-learning-hub.up.railway.app/uploads/${cleanImage}`;
                 backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
             }
 
