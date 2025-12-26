@@ -1,12 +1,12 @@
 # 1. Build Stage (Uses Railway's Gradle, ignores your local gradlew file)
-FROM gradle:8.5-jdk25 AS build
+FROM gradle:8.5-jdk21 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 # Build using the global gradle command
 RUN gradle build -x test --no-daemon
 
 # 2. Run Stage
-FROM openjdk:25-jdk-slim
+FROM openjdk:21-jdk-slim
 mkdir /app
 # Copy the jar file we just built
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/app.jar
