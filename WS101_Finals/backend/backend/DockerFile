@@ -1,15 +1,14 @@
-# 1. Build Stage (Uses Railway's Gradle, ignores your local gradlew file)
-FROM gradle:8.5-jdk21 AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-# Build using the global gradle command
-RUN gradle build -x test --no-daemon
+# Step 1: Build the application using Gradle and JDK 25
+FROM gradle:jdk25 AS build
+WORKDIR /app
+COPY . .
+RUN ./gradlew bootJar --no-daemon
 
-# 2. Run Stage
-FROM openjdk:21-jdk-slim
-mkdir /app
-# Copy the jar file we just built
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/app.jar
-
+# Step 2: Run the application using a lightweight JDK 25 runtime
+FROM openjdk:25-jdk-slim
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+# Start the app
+ENTRYPOINT ["java", "-jar", "app.jar"]
