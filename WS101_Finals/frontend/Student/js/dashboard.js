@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2. LOAD COURSE INFO
     console.log("Fetching Course:", courseId);
-    fetch(`http://interactive-learning-hub.up.railway.app/api/courses/${courseId}`)
+    fetch(`https://new-ed9m.onrender.com/api/courses/${courseId}`)
         .then(r => {
             if (!r.ok) throw new Error("Course ID '" + courseId + "' not found in Database.");
             return r.json();
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 2. DATA FETCHING
 // ==========================================
 function fetchSubjects(cId) {
-    fetch(`http://interactive-learning-hub.up.railway.app/api/courses/${cId}/subjects`)
+    fetch(`https://new-ed9m.onrender.com/api/courses/${cId}/subjects`)
         .then(r => r.json())
         .then(subjects => {
             console.log("Subjects Loaded:", subjects);
@@ -271,7 +271,7 @@ function loadUserProfile() {
 
     // Update Image
     if (user.profileImage) {
-        const imgUrl = `http://interactive-learning-hub.up.railway.app/uploads/${user.profileImage}`;
+        const imgUrl = `https://new-ed9m.onrender.com/uploads/${user.profileImage}`;
         const navImg = document.getElementById('nav-profile-img');
         const navPlaceholder = document.getElementById('nav-profile-placeholder');
 
@@ -327,7 +327,7 @@ window.saveProfileChanges = async function() {
         if (selectedFile) {
             const formData = new FormData();
             formData.append('file', selectedFile);
-            const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/auth/users/${user.id}/photo`, {
+            const res = await fetch(`https://new-ed9m.onrender.com/api/auth/users/${user.id}/photo`, {
                 method: 'POST',
                 body: formData
             });
@@ -342,7 +342,7 @@ window.saveProfileChanges = async function() {
         if (newPassword) updateData.password = newPassword;
 
         if (Object.keys(updateData).length > 0) {
-            const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/auth/users/${user.id}`, {
+            const res = await fetch(`https://new-ed9m.onrender.com/api/auth/users/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
