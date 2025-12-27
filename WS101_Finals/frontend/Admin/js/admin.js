@@ -1,4 +1,4 @@
-const API_URL = "http://interactive-learning-hub.up.railway.app/api/admin";
+const API_URL = "https://new-ed9m.onrender.com/api/admin";
 
 // State Variables
 let isEditCourseMode = false;
@@ -186,7 +186,7 @@ async function loadCourses() {
             // If course has image, use it
             if (course.image) {
                 let cleanImage = course.image.replace('uploads/', '');
-                const imageUrl = `http://interactive-learning-hub.up.railway.app/uploads/${cleanImage}`;
+                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
                 backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
             }
 
