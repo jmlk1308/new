@@ -1,4 +1,4 @@
-const API_URL = "http://interactive-learning-hub.up.railway.app/api/professor";
+const API_URL = "https://new-ed9m.onrender.com/api/professor";
 const USER_KEY = 'user';
 let selectedFile = null;
 
@@ -47,7 +47,7 @@ function loadUserProfile(user) {
     const nameEl = document.getElementById('sidebar-profile-name');
     if (nameEl) nameEl.innerText = `Prof. ${user.username}`;
     if (user.profileImage) {
-        updateSidebarImage(`http://interactive-learning-hub.up.railway.app/uploads/${user.profileImage}`);
+        updateSidebarImage(`https://new-ed9m.onrender.com/uploads/${user.profileImage}`);
     }
 }
 
@@ -69,7 +69,7 @@ function openProfileModal() {
         const placeholder = document.getElementById('modal-profile-placeholder');
 
         if (modalImg && user.profileImage) {
-            modalImg.src = `http://interactive-learning-hub.up.railway.app/uploads/${user.profileImage}`;
+            modalImg.src = `https://new-ed9m.onrender.com/uploads/${user.profileImage}`;
             modalImg.style.display = 'block';
             if(placeholder) placeholder.style.display = 'none';
         }
@@ -104,14 +104,14 @@ async function saveProfileChanges() {
         const formData = new FormData();
         formData.append('file', selectedFile);
         try {
-            const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/auth/users/${user.id}/photo`, {
+            const res = await fetch(`https://new-ed9m.onrender.com/api/auth/users/${user.id}/photo`, {
                 method: 'POST',
                 body: formData
             });
             if (res.ok) {
                 const data = await res.json();
                 user.profileImage = data.image;
-                updateSidebarImage(`http://interactive-learning-hub.up.railway.app/uploads/${data.image}`);
+                updateSidebarImage(`https://new-ed9m.onrender.com/uploads/${data.image}`);
             }
         } catch (err) { console.error(err); }
     }
@@ -123,7 +123,7 @@ async function saveProfileChanges() {
 
     if (Object.keys(updateData).length > 0) {
         try {
-            const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/auth/users/${user.id}`, {
+            const res = await fetch(`https://new-ed9m.onrender.com/api/auth/users/${user.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -283,7 +283,7 @@ async function loadModulesForSubject() {
     if (!moduleSelect || !subjectCode) return;
     moduleSelect.innerHTML = '<option value="">Loading...</option>';
     try {
-        const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/admin/modules?subjectCode=${subjectCode}`);
+        const res = await fetch(`https://new-ed9m.onrender.com/api/admin/modules?subjectCode=${subjectCode}`);
         const modules = await res.json();
         moduleSelect.innerHTML = '<option value="">Select Existing Module</option>';
         modules.forEach(mod => {
@@ -428,7 +428,7 @@ window.openModuleManager = async function(subjectCode) {
     listBody.innerHTML = '<tr><td style="padding:15px; text-align:center;">Loading...</td></tr>';
 
     try {
-        const res = await fetch(`http://interactive-learning-hub.up.railway.app/api/admin/modules?subjectCode=${subjectCode}`);
+        const res = await fetch(`https://new-ed9m.onrender.com/api/admin/modules?subjectCode=${subjectCode}`);
         const modules = await res.json();
 
         listBody.innerHTML = '';
