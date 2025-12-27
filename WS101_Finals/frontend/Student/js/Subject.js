@@ -53,7 +53,7 @@ async function switchTab(type) {
 
     try {
         // --- Prepare API URL ---
-        let url = `http://interactive-learning-hub.up.railway.app/api/student/materials?subjectCode=${subjectId}`;
+        let url = `https://new-ed9m.onrender.com/api/student/materials?subjectCode=${subjectId}`;
 
         // If filtering by specific module
         if (moduleId) {
@@ -82,7 +82,7 @@ async function switchTab(type) {
             // 1. Handle File URL (Local vs External)
             let fileUrl = file.filePath;
             if (!fileUrl.startsWith('http')) {
-                fileUrl = `http://interactive-learning-hub.up.railway.app/uploads/${file.filePath}`;
+                fileUrl = `https://new-ed9m.onrender.com/uploads/${file.filePath}`;
             }
 
             // 2. Determine Style based on Type
