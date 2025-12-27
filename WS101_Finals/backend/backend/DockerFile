@@ -1,11 +1,14 @@
-# Stage 1: Build the JAR
-# We use 'eclipse-temurin' instead of 'openjdk'
+# Stage 1: Build
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 COPY . .
+
+# ⚠️ THIS IS THE FIX: Give execution permission to the script
+RUN chmod +x gradlew
+
 RUN ./gradlew bootJar --no-daemon
 
-# Stage 2: Run the JAR
+# Stage 2: Run
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
