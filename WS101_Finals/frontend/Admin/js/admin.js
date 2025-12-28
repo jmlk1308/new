@@ -185,15 +185,23 @@ async function loadCourses() {
 
             // If course has image, use it
             // ✅ CORRECT (New way)
+
+
+            // ✅ NEW CORRECT CODE
             if (course.image) {
-                // If the image starts with "data:", it's Base64. Use it directly.
-                // If it DOESN'T, it might be an old image.
-                const imageUrl = course.image.startsWith('data:')
-                    ? course.image
-                    : `https://new-ed9m.onrender.com/uploads/${course.image}`; // Fallback for old images (optional)
+                let imageUrl;
+
+                // Check: Is it already a Base64 string?
+                if (course.image.startsWith('data:image')) {
+                    imageUrl = course.image; // Use it exactly as is!
+                } else {
+                    // It's an old file, so add the folder path
+                    imageUrl = `https://new-ed9m.onrender.com/uploads/${course.image}`;
+                }
 
                 backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
             }
+
             const card = document.createElement('div');
             card.className = 'course-card';
             card.innerHTML = `
