@@ -139,8 +139,12 @@ public class AdminController {
             existing.setThemeColor(themeColor);
 
             if (file != null && !file.isEmpty()) {
-                String imagePath = saveFile(file);
-                existing.setImage(imagePath);
+                try {
+                    String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+                    existing.setImage("data:image/jpeg;base64," + base64Image);
+                } catch (Exception e) {
+                    return ResponseEntity.status(500).body("Error processing image");
+                }
             }
             courseRepository.save(existing);
 

@@ -184,12 +184,11 @@ async function loadCourses() {
             let backgroundStyle = `background: ${theme};`;
 
             // If course has image, use it
+            // ✅ REPLACE WITH THIS (Direct Base64 Usage)
             if (course.image) {
-                let cleanImage = course.image.replace('uploads/', '');
-                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
-                backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
+                // The database now holds the full image data string, so use it directly
+                backgroundStyle = `background-image: url('${course.image}'); background-size: cover; background-position: center;`;
             }
-
             const card = document.createElement('div');
             card.className = 'course-card';
             card.innerHTML = `
