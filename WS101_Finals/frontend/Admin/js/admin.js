@@ -184,23 +184,9 @@ async function loadCourses() {
             let backgroundStyle = `background: ${theme};`;
 
             // If course has image, use it
-            // ✅ PERMANENT FIX
             if (course.image) {
-                // If the image is saved correctly in the DB, it is a huge text string.
-                // We just put it directly into the URL. NO "uploads/" folder allowed.
-
-                let imageUrl = course.image;
-
-                // Safety check: If your DB has "uploads/" in the text, remove it.
-                if (imageUrl.includes('uploads/')) {
-                    imageUrl = imageUrl.replace('uploads/', '');
-                }
-
-                // Safety check: If it's missing the data prefix, add it.
-                if (!imageUrl.startsWith('http') && !imageUrl.startsWith('data:image')) {
-                    imageUrl = "data:image/jpeg;base64," + imageUrl;
-                }
-
+                let cleanImage = course.image.replace('uploads/', '');
+                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
                 backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
             }
 
