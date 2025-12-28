@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. SECURITY CHECK (Prevent Professors from seeing Student View)
     const userJson = localStorage.getItem('user');
     if (!userJson) {
-        window.location.href = 'student-login.html';
+        window.location.href = '../Student/login.html';
         return;
     }
     const user = JSON.parse(userJson);
