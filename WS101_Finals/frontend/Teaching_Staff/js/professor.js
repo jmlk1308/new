@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // If no user is logged in
     if (!userJson) {
         alert("Session expired. Please login.");
-        window.location.href = '../Student/login.html';
+        window.location.href = '../Student/student-login.html';
         return;
     }
 
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Case-Insensitive Check
     if (user.role.toLowerCase() !== 'professor') {
         alert("Access Denied: You are not a Professor.");
-        window.location.href = '../Student/login.html';
+        window.location.href = '../Student/student-login.html';
         return;
     }
 
@@ -157,7 +157,7 @@ function logout() {
     if (confirm("Are you sure you want to logout?")) {
         localStorage.removeItem(USER_KEY);
         sessionStorage.clear();
-        window.location.href = '../Student/login.html';
+        window.location.href = '../Student/student-login.html';
     }
 }
 

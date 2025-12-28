@@ -556,7 +556,7 @@ function logout() {
         sessionStorage.clear();
 
         // 2. Redirect to Login Page
-        window.location.href = '..Student/login.html';
+        window.location.href = 'student-login.html';
     }
 }
 
@@ -583,6 +583,6 @@ function logout() {
 
         // 2. Redirect to Login Page
         // ✅ FIX: Go UP one level (../) then into Student folder
-        window.location.href = '..Student/login.html';
+        window.location.href = '../Student/student-login.html';
     }
 }
