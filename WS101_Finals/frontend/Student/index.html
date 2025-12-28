@@ -3,39 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Home</title>
-    <link rel="stylesheet" href="css/home.css">
+    <title>Login - CS Learning Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body {
+            background-color: #f3f4f6;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .brand-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        .brand-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 500; font-size: 0.9rem; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .btn-login:hover { background-color: #1d4ed8; }
+        .btn-login:disabled { background-color: #93c5fd; cursor: not-allowed; }
+
+        .error-msg {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+    </style>
 </head>
 <body>
-<div id="bg-container"><div class="bg-overlay"></div></div>
-<nav>
-    <div class="max-w-7xl px-6 flex justify-between items-center">
-        <div class="flex items-center space-x-3">
-            <div class="logo-circle"><svg viewBox="0 0 256 256" class="icon-sm"><path d="M208,32H48A16,16,0,0,0,32,48V160a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,128H48V48H208V160Z" fill="white"/><path d="M160,200H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Z" fill="white"/></svg></div>
-            <span class="logo-text">CS Interactive Learning Hub</span>
-        </div>
-        <div class="nav-links">
-            <a href="#" class="nav-link active">Home</a>
-            <a href="landing.html" class="nav-link" style="color: #ef4444;">Logout</a>
-        </div>
-    </div>
-</nav>
-<main>
-    <div class="max-w-7xl w-full px-6 grid-layout">
-        <div id="text-content" class="fade-in">
-            <h1 id="course-title" class="hero-title">BS INFORMATION<br>TECHNOLOGY</h1>
-            <p id="course-desc" class="hero-desc">The BSIT program equips students with the skills to develop software.</p>
-            <button id="viewLessonBtn" class="btn-primary">VIEW LESSONS</button>
-        </div>
-        <div class="card-perspective">
-            <div class="card-container" id="card-track"></div>
-            <div class="carousel-controls">
-                <button id="prevBtn" class="control-btn"><svg viewBox="0 0 256 256"><polyline points="160 208 80 128 160 48" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-                <button id="nextBtn" class="control-btn"><svg viewBox="0 0 256 256"><polyline points="96 48 176 128 96 208" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+<div class="login-card">
+    <div class="brand-title">Welcome Back</div>
+    <div class="brand-subtitle">Sign in to access your dashboard</div>
+
+    <div id="errorText" class="error-msg"></div>
+
+    <form id="loginForm">
+        <div class="form-group">
+            <label>Username</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" class="form-input" placeholder="Enter username" required>
             </div>
         </div>
-    </div>
-</main>
-<script src="js/home.js"></script>
+
+        <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+            </div>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn-login">Sign In</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // 1. STOP PAGE RELOAD
+
+        const usernameIn = document.getElementById('username').value;
+        const passwordIn = document.getElementById('password').value;
+        const errorEl = document.getElementById('errorText');
+        const btn = document.getElementById('loginBtn');
+
+        // Reset UI
+        errorEl.style.display = 'none';
+        btn.innerText = "Signing in...";
+        btn.disabled = true;
+
+        try {
+            // 2. SEND LOGIN REQUEST
+            const response = await fetch('https://new-ed9m.onrender.com/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: usernameIn, password: passwordIn })
+            });
+
+            if (response.ok) {
+                // 3. SUCCESS: SAVE USER
+                const user = await response.json();
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // 4. REDIRECT BASED ON ROLE
+                // NOTE: The '../' moves UP one folder level.
+                if (user.role === 'admin') {
+                    window.location.href = '../Admin/admin.html';
+                }
+                else if (user.role === 'professor') {
+                    window.location.href = '../Teaching_Staff/professor-dashboard.html';
+                }
+                else {
+                    // Student stays in the current folder structure
+                    window.location.href = 'index.html';
+                }
+
+            } else {
+                // 5. FAIL: SHOW ERROR
+                const msg = await response.text();
+                errorEl.innerText = msg || "Invalid username or password";
+                errorEl.style.display = 'block';
+                btn.innerText = "Sign In";
+                btn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error("Login Error:", error);
+            errorEl.innerText = "Cannot connect to server. Is the backend running?";
+            errorEl.style.display = 'block';
+            btn.innerText = "Sign In";
+            btn.disabled = false;
+        }
+    });
+</script>
+
 </body>
 </html>
