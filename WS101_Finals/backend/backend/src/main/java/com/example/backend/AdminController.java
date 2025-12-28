@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Base64;
-import java.nio.file.*;
 import java.util.List;
 
 @RestController
@@ -16,12 +15,10 @@ public class AdminController {
     @Autowired private UserRepository userRepository;
     @Autowired private CourseRepository courseRepository;
     @Autowired private SubjectRepository subjectRepository;
-    @Autowired private ActivityLogRepository logRepository; // ✅ NEW
-
-    private static final String UPLOAD_DIR = "uploads/";
+    @Autowired private ActivityLogRepository logRepository;
 
     // ==========================================
-    // 0. ACTIVITY LOGS (✅ NEW ENDPOINT)
+    // 0. ACTIVITY LOGS
     // ==========================================
     @GetMapping("/logs")
     public List<ActivityLog> getLogs() {
@@ -35,7 +32,7 @@ public class AdminController {
     }
 
     // ==========================================
-    // 1. USER MANAGEMENT (Updated with Logging)
+    // 1. USER MANAGEMENT
     // ==========================================
 
     @GetMapping("/users")
@@ -57,8 +54,6 @@ public class AdminController {
         if (user.getRole() == null) user.setRole("student");
 
         User savedUser = userRepository.save(user);
-
-        // ✅ LOG IT
         logActivity(savedUser.getUsername(), "User created", savedUser.getRole());
 
         return ResponseEntity.ok(savedUser);
@@ -70,15 +65,13 @@ public class AdminController {
         if (user == null) return ResponseEntity.notFound().build();
 
         userRepository.deleteById(id);
-
-        // ✅ LOG IT
         logActivity(user.getUsername(), "User deleted", user.getRole());
 
         return ResponseEntity.ok("User deleted successfully");
     }
 
     // ==========================================
-    // 2. COURSE MANAGEMENT (Updated with Logging)
+    // 2. COURSE MANAGEMENT (Fixed for Base64)
     // ==========================================
 
     @GetMapping("/courses")
@@ -103,23 +96,17 @@ public class AdminController {
         course.setThemeColor(themeColor);
         course.setStatus("active");
 
-        // --- 🔴 NEW IMAGE LOGIC STARTS HERE 🔴 ---
+        // ✅ FIXED: Save Image as Base64 String (No folders!)
         if (file != null && !file.isEmpty()) {
             try {
-                // 1. Convert File to Base64 String
-                String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
-
-                // 2. Add the data prefix so the browser knows it's an image
+                String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
                 course.setImage("data:image/jpeg;base64," + base64Image);
             } catch (Exception e) {
                 return ResponseEntity.status(500).body("Error processing image");
             }
         }
-        // --- NEW IMAGE LOGIC ENDS HERE ---
 
         courseRepository.save(course);
-
-        // ✅ LOG IT
         logActivity(course.getId(), "Course created", "System");
 
         return ResponseEntity.ok(course);
@@ -138,17 +125,17 @@ public class AdminController {
             existing.setDescription(description);
             existing.setThemeColor(themeColor);
 
+            // ✅ FIXED: Now updates image correctly using Base64
             if (file != null && !file.isEmpty()) {
                 try {
-                    String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+                    String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
                     existing.setImage("data:image/jpeg;base64," + base64Image);
                 } catch (Exception e) {
-                    return ResponseEntity.status(500).body("Error processing image");
+                    System.err.println("Error updating image: " + e.getMessage());
                 }
             }
-            courseRepository.save(existing);
 
-            // ✅ LOG IT
+            courseRepository.save(existing);
             logActivity(existing.getId(), "Course updated", "System");
 
             return ResponseEntity.ok(existing);
@@ -159,15 +146,12 @@ public class AdminController {
     public ResponseEntity<?> deleteCourse(@PathVariable String id) {
         if (!courseRepository.existsById(id)) return ResponseEntity.notFound().build();
         courseRepository.deleteById(id);
-
-        // ✅ LOG IT
         logActivity(id, "Course deleted", "System");
-
         return ResponseEntity.ok("Course deleted successfully");
     }
 
     // ==========================================
-    // 3. SUBJECT MANAGEMENT (Updated with Logging)
+    // 3. SUBJECT MANAGEMENT
     // ==========================================
 
     @GetMapping("/subjects")
@@ -195,8 +179,6 @@ public class AdminController {
         if (subject.getStatus() == null) subject.setStatus("active");
 
         subjectRepository.save(subject);
-
-        // ✅ LOG IT
         logActivity(subject.getCode(), "Subject created", "System");
 
         return ResponseEntity.ok(subject);
@@ -211,8 +193,6 @@ public class AdminController {
             existing.setStatus(subject.getStatus());
 
             subjectRepository.save(existing);
-
-            // ✅ LOG IT
             logActivity(code, "Subject updated", "System");
 
             return ResponseEntity.ok(existing);
@@ -223,25 +203,7 @@ public class AdminController {
     public ResponseEntity<?> deleteSubject(@PathVariable String code) {
         if (!subjectRepository.existsById(code)) return ResponseEntity.notFound().build();
         subjectRepository.deleteById(code);
-
-        // ✅ LOG IT
         logActivity(code, "Subject deleted", "System");
-
         return ResponseEntity.ok("Subject deleted successfully");
-    }
-
-    // ==========================================
-    // 4. HELPER METHODS
-    // ==========================================
-    private String saveFile(MultipartFile file) {
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store file. Error: " + e.getMessage());
-        }
     }
 }
