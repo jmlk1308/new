@@ -7,9 +7,8 @@ import jakarta.persistence.*;
 public class Course {
 
     @Id
-    // ✅ FIX: Add length = 50 to match your MySQL database
     @Column(nullable = false, unique = true, length = 50)
-    private String id; // e.g. "BSIT"
+    private String id;
 
     private String title;
 
@@ -20,7 +19,11 @@ public class Course {
 
     private String status;
 
+    // --- 🔴 THE FIX IS HERE 🔴 ---
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String image;
+    // -----------------------------
 
     public Course() {}
 

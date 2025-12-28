@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.Base64;
 import java.nio.file.*;
 import java.util.List;
 
@@ -103,10 +103,19 @@ public class AdminController {
         course.setThemeColor(themeColor);
         course.setStatus("active");
 
+        // --- 🔴 NEW IMAGE LOGIC STARTS HERE 🔴 ---
         if (file != null && !file.isEmpty()) {
-            String imagePath = saveFile(file);
-            course.setImage(imagePath);
+            try {
+                // 1. Convert File to Base64 String
+                String base64Image = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+
+                // 2. Add the data prefix so the browser knows it's an image
+                course.setImage("data:image/jpeg;base64," + base64Image);
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Error processing image");
+            }
         }
+        // --- NEW IMAGE LOGIC ENDS HERE ---
 
         courseRepository.save(course);
 
