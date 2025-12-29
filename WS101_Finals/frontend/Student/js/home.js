@@ -1,3 +1,5 @@
+//
+
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
@@ -8,16 +10,16 @@ const bgContainer = document.getElementById('bg-container');
 const cardTrack = document.getElementById('card-track');
 const textContent = document.getElementById('text-content');
 
-// ✅ FIX 1: Use Relative Path (Points to YOUR current site automatically)
-const IMG_BASE_URL = "/uploads/";
+// ✅ CONFIG: Your Backend URL for local uploads
+const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
 
 // ==========================================
 // 2. DATA FETCHING & PROCESSING
 // ==========================================
 async function fetchCourses() {
     try {
-        // ✅ FIX 2: Use Relative Path for API
-        const response = await fetch('/api/admin/courses');
+        // ✅ CONFIG: Your Backend URL for API calls
+        const response = await fetch('https://new-ed9m.onrender.com/api/admin/courses');
 
         if (!response.ok) throw new Error("Failed to fetch courses");
 
@@ -26,16 +28,16 @@ async function fetchCourses() {
         // Transform Database Data -> Frontend Format
         courses = dbCourses.map(c => {
 
-            // --- IMAGE LOGIC ---
+            // --- IMAGE LOGIC START ---
             let imgPart = c.image || '';
             let finalUrl;
 
-            // CASE A: Cloudinary / External Link
+            // 1. CHECK: Is it a Cloudinary/External Link? (Starts with http)
             if (imgPart.startsWith('http')) {
-                // Force HTTPS
+                // Fix Mixed Content: Ensure it is HTTPS
                 finalUrl = imgPart.replace('http://', 'https://');
             }
-            // CASE B: Local File (Render)
+            // 2. FALLBACK: It is an old file on Render
             else {
                 // Clean the path
                 if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
@@ -43,12 +45,13 @@ async function fetchCourses() {
                 }
                 if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
 
-                // Combine with Base URL
+                // Combine your Backend URL + Filename
                 finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
+            // --- IMAGE LOGIC END ---
 
-            // Debugging: Check the Console to see what URL is being used!
-            console.log(`Course: ${c.title}, Final URL: ${finalUrl}`);
+            // 🔍 DEBUGGING: Look at your browser console to see this!
+            console.log(`Course: ${c.title} | Final Image Link: ${finalUrl}`);
 
             const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
@@ -58,7 +61,7 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // Apply Style
+                // Apply the link to the card
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
