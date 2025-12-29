@@ -102,3 +102,69 @@ svg { fill: currentColor; }
 
 /* Animations */
 .fade-in { transition: opacity 0.3s, transform 0.3s; }
+
+/* =========================================
+   RESPONSIVE QUERIES (Add to bottom of home.css)
+   ========================================= */
+
+@media (max-width: 900px) {
+    .grid-layout {
+        grid-template-columns: 1fr; /* Stack Text and Carousel */
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .hero-desc {
+        margin: 0 auto 2rem auto; /* Center description */
+        border-left: none;
+        border-bottom: 3px solid #3b82f6; /* Move accent line to bottom */
+        padding-left: 0;
+        padding-bottom: 1rem;
+    }
+
+    /* Adjust Carousel Height */
+    .card-perspective {
+        height: 350px;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Navbar: Hide links or stack them */
+    .nav-links {
+        display: none; /* Simple fix: Hide links on super small screens (or add hamburger menu JS) */
+    }
+
+    .hero-title {
+        font-size: 2.5rem; /* Smaller Title */
+    }
+
+    /* Flatten the 3D Carousel for Mobile */
+    .card-perspective {
+        perspective: none; /* Remove 3D depth */
+    }
+
+    .course-card {
+        width: 240px;
+        height: 320px;
+        /* Remove 3D Transforms */
+        transform: scale(0.9) !important;
+        opacity: 0;
+    }
+
+    .course-card.active {
+        opacity: 1;
+        transform: scale(1) !important;
+        left: 50%;
+        margin-left: -120px; /* Center manually */
+    }
+
+    /* Hide Side Cards completely on mobile to prevent overflow */
+    .course-card.prev, .course-card.next {
+        opacity: 0;
+    }
+
+    /* About Section */
+    .about-grid {
+        grid-template-columns: 1fr;
+    }
+}

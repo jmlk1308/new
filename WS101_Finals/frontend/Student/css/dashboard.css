@@ -93,3 +93,63 @@ nav {
 .recent-item:last-child { border-bottom: none; }
 .recent-title { font-weight: 600; color: #374151; }
 .recent-year { color: #9CA3AF; font-size: 0.9rem; }
+
+/* =========================================
+   RESPONSIVE QUERIES (Add to bottom of dashboard.css)
+   ========================================= */
+
+/* Tablets and smaller (max-width: 1024px) */
+@media (max-width: 1024px) {
+    .max-w-7xl { padding-left: 1rem; padding-right: 1rem; }
+
+    /* Adjust Grid to fit 2 cards */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+    /* Navbar: Stack items or simplify */
+    .nav-content {
+        justify-content: space-between;
+    }
+    .brand-text {
+        font-size: 1rem; /* Smaller logo text */
+    }
+    .profile-container span {
+        display: none; /* Hide name on mobile, keep avatar */
+    }
+
+    /* Filters & Search */
+    .sub-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .search-box {
+        width: 100%;
+    }
+    .search-box input {
+        width: 100% !important; /* Force search to full width */
+        display: block !important;
+    }
+
+    /* Grid: 1 Column on Mobile */
+    .grid {
+        grid-template-columns: 1fr; /* Full width cards */
+        gap: 1rem;
+    }
+
+    /* Reduce Card Padding */
+    .card {
+        padding: 1rem;
+    }
+
+    /* Recent View List */
+    .recent-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
