@@ -170,6 +170,7 @@ async function loadCourses() {
         const grid = document.getElementById('courses-grid');
         grid.innerHTML = '';
 
+        // Update Counter
         if(document.getElementById('count-courses')) {
             document.getElementById('count-courses').innerText = courses.length;
         }
@@ -183,10 +184,24 @@ async function loadCourses() {
             const theme = course.themeColor || '#3182ce';
             let backgroundStyle = `background: ${theme};`;
 
-            // If course has image, use it
+            // ✅ THE FIX IS HERE
             if (course.image) {
-                let cleanImage = course.image.replace('uploads/', '');
-                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
+                let imageUrl;
+
+                // Check 1: Is it a Cloudinary URL? (Starts with http)
+                if (course.image.startsWith('http')) {
+                    imageUrl = course.image;
+                }
+                // Check 2: It is an old local image
+                else {
+                    // Clean up the path just in case
+                    let cleanImage = course.image.replace(/^uploads[\\/]/, '');
+                    // Construct the local URL (uses your backend URL base)
+                    // We remove '/api/admin' from the API_URL to get the root
+                    const baseUrl = API_URL.replace('/api/admin', '');
+                    imageUrl = `${baseUrl}/uploads/${cleanImage}`;
+                }
+
                 backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
             }
 
@@ -210,7 +225,7 @@ async function loadCourses() {
             grid.appendChild(card);
         });
 
-        loadCoursesForDropdown(); // Refresh dropdowns
+        loadCoursesForDropdown();
     } catch (err) { console.error(err); }
 }
 
