@@ -170,7 +170,6 @@ async function loadCourses() {
         const grid = document.getElementById('courses-grid');
         grid.innerHTML = '';
 
-        // Update Counter
         if(document.getElementById('count-courses')) {
             document.getElementById('count-courses').innerText = courses.length;
         }
@@ -181,33 +180,15 @@ async function loadCourses() {
         }
 
         courses.forEach(course => {
-// ... inside courses.forEach(course => { ...
+            const theme = course.themeColor || '#3182ce';
+            let backgroundStyle = `background: ${theme};`;
 
-    const theme = course.themeColor || '#3182ce';
-    let backgroundStyle = `background: ${theme};`;
-
-    if (course.image) {
-        let imageUrl;
-
-        // ✅ FIX: Check if the link is already a full "http" web link (Cloudinary)
-        if (course.image.startsWith('http')) {
-            imageUrl = course.image;
-        }
-        // Otherwise, treat it as an old local upload
-        else {
-            // Remove 'uploads/' if it was saved in the database that way
-            let cleanImage = course.image.replace(/^uploads[\\/]/, '');
-            // Point to your Render backend URL
-            // (Make sure this matches your actual backend URL)
-            const baseUrl = "https://new-ed9m.onrender.com";
-            imageUrl = `${baseUrl}/uploads/${cleanImage}`;
-        }
-
-        // Set the background image
-        backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
-    }
-
-// ... continue with creating the card ...
+            // If course has image, use it
+            if (course.image) {
+                let cleanImage = course.image.replace('uploads/', '');
+                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
+                backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
+            }
 
             const card = document.createElement('div');
             card.className = 'course-card';
@@ -229,7 +210,7 @@ async function loadCourses() {
             grid.appendChild(card);
         });
 
-        loadCoursesForDropdown();
+        loadCoursesForDropdown(); // Refresh dropdowns
     } catch (err) { console.error(err); }
 }
 
