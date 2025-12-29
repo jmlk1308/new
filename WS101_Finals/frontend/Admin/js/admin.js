@@ -199,7 +199,7 @@ async function loadCourses() {
             let cleanImage = course.image.replace(/^uploads[\\/]/, '');
             // Point to your Render backend URL
             // (Make sure this matches your actual backend URL)
-            const baseUrl = "https://interactive-learning-hub.onrender.com";
+            const baseUrl = "https://new-ed9m.onrender.com";
             imageUrl = `${baseUrl}/uploads/${cleanImage}`;
         }
 
