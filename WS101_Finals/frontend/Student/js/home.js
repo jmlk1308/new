@@ -87,7 +87,7 @@ function renderCardsInitial() {
         // Add Logo
         const logoDiv = document.createElement('div');
         logoDiv.className = 'card-logo';
-        logoDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg>';
+
 
         card.appendChild(logoDiv);
         cardTrack.appendChild(card);
@@ -188,7 +188,7 @@ function startAutoPlay() {
     stopAutoPlay();
     autoPlayInterval = setInterval(() => {
         moveNext();
-    }, 5000);
+    }, 10000);
 }
 
 function stopAutoPlay() {
