@@ -80,6 +80,24 @@ async function fetchCourses() {
 }
 
 // ==========================================
+// 3. LOGIC: CHECK LOGIN BEFORE REDIRECT
+// ==========================================
+function handleCourseClick(courseId) {
+    // 1. Check if user data exists in Local Storage
+    // (Adjust 'user' or 'token' based on what your login.js saves)
+    const user = localStorage.getItem('user');
+
+    if (!user) {
+        // ❌ Not Logged In
+        alert("Please login to view this course.");
+        window.location.href = "login.html"; // Redirect to Login Page
+    } else {
+        // ✅ Logged In - Go to Course
+        window.location.href = `dashboard.html?course=${courseId}`;
+    }
+}
+
+// ==========================================
 // 3. CAROUSEL RENDERING
 // ==========================================
 
