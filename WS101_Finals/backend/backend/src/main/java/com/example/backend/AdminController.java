@@ -17,6 +17,7 @@ public class AdminController {
     @Autowired private CourseRepository courseRepository;
     @Autowired private SubjectRepository subjectRepository;
     @Autowired private ActivityLogRepository logRepository; // ✅ NEW
+    @Autowired private CloudinaryService cloudinaryService;
 
     private static final String UPLOAD_DIR = "uploads/";
 
@@ -221,14 +222,7 @@ public class AdminController {
     // 4. HELPER METHODS
     // ==========================================
     private String saveFile(MultipartFile file) {
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store file. Error: " + e.getMessage());
-        }
+        // This simple one-liner now uploads to the cloud and returns the URL
+        return cloudinaryService.uploadFile(file);
     }
 }

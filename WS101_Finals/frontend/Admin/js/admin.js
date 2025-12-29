@@ -180,35 +180,48 @@ async function loadCourses() {
         }
 
         courses.forEach(course => {
-            const theme = course.themeColor || '#3182ce';
-            let backgroundStyle = `background: ${theme};`;
+                // ---------------------------------------------------------------
+                // ✅ NEW IMAGE LOGIC STARTS HERE
+                // ---------------------------------------------------------------
+                let imgDisplay = '';
+                let imgPath = course.image || '';
 
-            // If course has image, use it
-            if (course.image) {
-                let cleanImage = course.image.replace('uploads/', '');
-                const imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
-                backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
-            }
+                if (imgPath) {
+                    let finalUrl;
+                    if (imgPath.startsWith('http')) {
+                        finalUrl = imgPath;
+                    } else {
+                        if (imgPath.startsWith('uploads/') || imgPath.startsWith('uploads\\')) {
+                            imgPath = imgPath.substring(8);
+                        }
+                        if (imgPath.startsWith('/')) imgPath = imgPath.substring(1);
+                        finalUrl = `https://new-ed9m.onrender.com/uploads/${imgPath}`;
+                    }
 
-            const card = document.createElement('div');
-            card.className = 'course-card';
-            card.innerHTML = `
-                <div class="course-header-banner" style="${backgroundStyle}">
-                    <div class="course-code-badge">${course.id}</div>
-                </div>
-                <div class="course-body">
-                    <h3 class="course-title">${course.title}</h3>
-                    <p class="course-description" title="${course.description || ''}">
-                        ${course.description || 'No description.'}
-                    </p>
-                    <div class="course-footer">
-                        <button class="action-btn-icon edit-btn" onclick="openEditCourseModal('${course.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn-icon delete-btn" onclick="deleteCourse('${course.id}')"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
+                    imgDisplay = `<img src="${finalUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">`;
+                } else {
+                    imgDisplay = '<div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>';
+                }
+                // ---------------------------------------------------------------
+                // ✅ NEW IMAGE LOGIC ENDS HERE
+                // ---------------------------------------------------------------
+
+                const row = `
+                    <tr>
+                        <td>${imgDisplay}</td>
+                        <td>${course.id}</td>
+                        <td>${course.title}</td>
+                        <td><span class="status-badge status-${course.status}">${course.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick="editCourse('${course.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon delete" onclick="deleteCourse('${course.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
 
         loadCoursesForDropdown(); // Refresh dropdowns
     } catch (err) { console.error(err); }

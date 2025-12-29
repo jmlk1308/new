@@ -22,25 +22,25 @@ async function fetchCourses() {
         const dbCourses = await response.json();
 
         // Transform Database Data -> Frontend Format
-        courses = dbCourses.map(c => {
-            // --- IMAGE LOGIC ---
-            // 1. Get the image string from DB (handle null)
+        // --- IMAGE LOGIC ---
             let imgPart = c.image || '';
+            let finalUrl;
 
-            // 2. Clean up path: Remove 'uploads/' if it was saved in the DB string
-            // We want just the filename, e.g., "my-pic.png"
-            if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
-                imgPart = imgPart.substring(8);
+            // ✅ NEW LOGIC: Check if it is a Cloudinary URL
+            if (imgPart.startsWith('http')) {
+                finalUrl = imgPart;
+            } else {
+                // Fallback for old local images
+                if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
+                    imgPart = imgPart.substring(8);
+                }
+                if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
+
+                finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
-            // Remove leading slash if present
-            if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
 
-            // 3. Construct Final URL
-            // If empty, use a placeholder. Otherwise, combine base URL + filename
-            let finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
-
-            // --- COLOR LOGIC ---
-            const color = c.themeColor || '#3b82f6'; // Default blue
+            // ... rest of the color logic stays the same ...
+            const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
 
             return {
@@ -48,9 +48,7 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // Card Style: Background Color (fallback) + Image + Gradient Overlay
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
-                // Background Style: Black base + Image + Dark Gradient
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
         });

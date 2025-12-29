@@ -260,18 +260,22 @@ function renderRecentViews() {
 
 function loadUserProfile() {
     const user = JSON.parse(localStorage.getItem('user'));
-
-    // NOTE: Security check is already done at top of file
     if (!user) return;
 
-    // Update Name
     if (document.getElementById('nav-profile-name')) {
         document.getElementById('nav-profile-name').innerText = user.username;
     }
 
     // Update Image
     if (user.profileImage) {
-        const imgUrl = `https://new-ed9m.onrender.com/uploads/${user.profileImage}`;
+        // ✅ NEW LOGIC: Check for HTTP
+        let imgUrl;
+        if (user.profileImage.startsWith('http')) {
+             imgUrl = user.profileImage;
+        } else {
+             imgUrl = `https://new-ed9m.onrender.com/uploads/${user.profileImage}`;
+        }
+
         const navImg = document.getElementById('nav-profile-img');
         const navPlaceholder = document.getElementById('nav-profile-placeholder');
 

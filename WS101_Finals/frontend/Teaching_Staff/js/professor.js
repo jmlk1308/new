@@ -44,11 +44,27 @@ document.addEventListener("DOMContentLoaded", () => {
 // EXISTING PROFILE FUNCTIONS
 // ==========================================
 function loadUserProfile(user) {
-    const nameEl = document.getElementById('sidebar-profile-name');
-    if (nameEl) nameEl.innerText = `Prof. ${user.username}`;
     if (user.profileImage) {
-        updateSidebarImage(`https://new-ed9m.onrender.com/uploads/${user.profileImage}`);
+        // ✅ NEW LOGIC: Check for HTTP
+        let imgUrl;
+        if (user.profileImage.startsWith('http')) {
+             imgUrl = user.profileImage;
+        } else {
+             imgUrl = `https://new-ed9m.onrender.com/uploads/${user.profileImage}`;
+        }
+
+        // Update Sidebar Image
+        const sidebarImg = document.getElementById('sidebar-profile-img');
+        const sidebarPlaceholder = document.getElementById('sidebar-profile-placeholder');
+
+        if (sidebarImg) {
+            sidebarImg.src = imgUrl;
+            sidebarImg.style.display = 'block';
+            if (sidebarPlaceholder) sidebarPlaceholder.style.display = 'none';
+        }
     }
+
+    // ... rest of the function (name updates, etc.) ...
 }
 
 function updateSidebarImage(src) {

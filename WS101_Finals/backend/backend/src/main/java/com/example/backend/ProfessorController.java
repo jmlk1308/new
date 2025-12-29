@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class ProfessorController {
 
-    private static final String UPLOAD_DIR = "uploads/";
+
 
     @Autowired private SubjectRepository subjectRepository;
     @Autowired private LearningMaterialRepository materialRepository;
@@ -24,6 +24,7 @@ public class ProfessorController {
     @Autowired private ModuleRepository moduleRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private ActivityLogRepository logRepository;
+    @Autowired private CloudinaryService cloudinaryService;
 
     // ==========================================
     // 1. DASHBOARD STATS
@@ -188,17 +189,17 @@ public class ProfessorController {
             @RequestParam(value = "moduleId", required = false) Long moduleId
     ) {
         try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            // ✅ 2. REPLACE THE OLD "Files.copy" LOGIC WITH THIS:
+            String onlineUrl = cloudinaryService.uploadFile(file);
 
             LearningMaterial material = new LearningMaterial();
             material.setTitle(title);
             material.setSubjectCode(subjectCode);
-            material.setFilePath(fileName);
-            material.setType(determineType(fileName));
+
+            // Save the Cloud URL instead of a local filename
+            material.setFilePath(onlineUrl);
+
+            material.setType(determineType(file.getOriginalFilename())); // Pass original name for type check
             if (moduleId != null) material.setModuleId(moduleId);
 
             materialRepository.save(material);
