@@ -5,7 +5,7 @@ const subjectTitle = params.get('title');
 const titleElement = document.getElementById('roadmap-title');
 const container = document.getElementById('timeline-tracks');
 
-// 1. Set the Title immediately
+
 if (subjectId) {
     titleElement.innerText = `${subjectId}: ${subjectTitle || ''}`;
 } else {
@@ -14,7 +14,7 @@ if (subjectId) {
 
 // 2. Fetch Modules from Backend
 if (subjectId) {
-    // IMPORTANT: Accessing port 8080 where your backend runs
+
     fetch(`https://new-ed9m.onrender.com/api/admin/modules?subjectCode=${subjectId}`)
         .then(response => {
             if (!response.ok) {
@@ -40,7 +40,7 @@ if (subjectId) {
 }
 
 function renderModules(modules) {
-    container.innerHTML = ''; // Clear loading text
+    container.innerHTML = '';
 
     modules.forEach((mod, index) => {
         // Alternating Layout (Left/Right)
