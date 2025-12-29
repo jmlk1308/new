@@ -45,14 +45,24 @@ async function fetchCourses() {
             const darkerColor = adjustBrightness(color, -50);
 
             return {
-                id: c.id,
-                title: c.title,
-                desc: c.description,
-                color: color,
-                // Card Style
-                cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
-                bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
-            };
+                            id: c.id,
+                            title: c.title,
+                            desc: c.description,
+                            color: color,
+
+                            // ✅ FIX 1: CARD STYLE (Text is at the bottom, so we add a dark fade at the bottom)
+                            // We put the linear-gradient FIRST so it sits ON TOP of the image
+                            cardStyle: `background-color: ${color};
+                                        background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.9) 100%),
+                                                          url('${finalUrl}');
+                                        background-size: cover; background-position: center;`,
+
+                            // ✅ FIX 2: BIG BACKGROUND (Text is on the left, so we add a dark fade on the left)
+                            bgStyle: `background-color: #000;
+                                      background-image: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%),
+                                                        url('${finalUrl}');
+                                      background-size: cover; background-position: center;`
+                        };
         });
 
         if (courses.length > 0) {
@@ -188,7 +198,7 @@ function startAutoPlay() {
     stopAutoPlay();
     autoPlayInterval = setInterval(() => {
         moveNext();
-    }, 10000);
+    }, 30000);
 }
 
 function stopAutoPlay() {
