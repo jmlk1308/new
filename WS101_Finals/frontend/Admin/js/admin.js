@@ -181,29 +181,33 @@ async function loadCourses() {
         }
 
         courses.forEach(course => {
-            const theme = course.themeColor || '#3182ce';
-            let backgroundStyle = `background: ${theme};`;
+// ... inside courses.forEach(course => { ...
 
-            // ✅ THE FIX IS HERE
-            if (course.image) {
-                let imageUrl;
+    const theme = course.themeColor || '#3182ce';
+    let backgroundStyle = `background: ${theme};`;
 
-                // Check 1: Is it a Cloudinary URL? (Starts with http)
-                if (course.image.startsWith('http')) {
-                    imageUrl = course.image;
-                }
-                // Check 2: It is an old local image
-                else {
-                    // Clean up the path just in case
-                    let cleanImage = course.image.replace(/^uploads[\\/]/, '');
-                    // Construct the local URL (uses your backend URL base)
-                    // We remove '/api/admin' from the API_URL to get the root
-                    const baseUrl = API_URL.replace('/api/admin', '');
-                    imageUrl = `${baseUrl}/uploads/${cleanImage}`;
-                }
+    if (course.image) {
+        let imageUrl;
 
-                backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
-            }
+        // ✅ FIX: Check if the link is already a full "http" web link (Cloudinary)
+        if (course.image.startsWith('http')) {
+            imageUrl = course.image;
+        }
+        // Otherwise, treat it as an old local upload
+        else {
+            // Remove 'uploads/' if it was saved in the database that way
+            let cleanImage = course.image.replace(/^uploads[\\/]/, '');
+            // Point to your Render backend URL
+            // (Make sure this matches your actual backend URL)
+            const baseUrl = "https://interactive-learning-hub.onrender.com";
+            imageUrl = `${baseUrl}/uploads/${cleanImage}`;
+        }
+
+        // Set the background image
+        backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
+    }
+
+// ... continue with creating the card ...
 
             const card = document.createElement('div');
             card.className = 'course-card';
