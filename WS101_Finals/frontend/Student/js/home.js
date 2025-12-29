@@ -139,7 +139,7 @@ function updateCarousel() {
             positionClass = 'active';
             // If active, clicking takes you to dashboard (or you can remove this if you prefer the button)
             card.onclick = () => {
-                 window.location.href = `dashboard.html?course=${courses[currentIndex].id}`;
+                 window.location.href = `dashboar.html?course=${courses[currentIndex].id}`;
             };
             card.style.cursor = 'pointer';
 
