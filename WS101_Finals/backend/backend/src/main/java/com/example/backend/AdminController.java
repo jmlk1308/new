@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.*;
 import java.util.List;
 
 @RestController
@@ -16,28 +15,29 @@ public class AdminController {
     @Autowired private UserRepository userRepository;
     @Autowired private CourseRepository courseRepository;
     @Autowired private SubjectRepository subjectRepository;
-    @Autowired private ActivityLogRepository logRepository; // ✅ NEW
+    @Autowired private ActivityLogRepository logRepository;
 
-    private static final String UPLOAD_DIR = "uploads/";
+    // ✅ NEW: INJECT CLOUDINARY SERVICE
+    @Autowired private CloudinaryService cloudinaryService;
+
+    // ❌ REMOVED: private static final String UPLOAD_DIR = "uploads/";
 
     // ==========================================
-    // 0. ACTIVITY LOGS (✅ NEW ENDPOINT)
+    // 0. ACTIVITY LOGS
     // ==========================================
     @GetMapping("/logs")
     public List<ActivityLog> getLogs() {
         return logRepository.findAllByOrderByTimestampDesc();
     }
 
-    // Helper to save logs easily
     private void logActivity(String target, String action, String role) {
         ActivityLog log = new ActivityLog(target, action, role);
         logRepository.save(log);
     }
 
     // ==========================================
-    // 1. USER MANAGEMENT (Updated with Logging)
+    // 1. USER MANAGEMENT
     // ==========================================
-
     @GetMapping("/users")
     public List<User> getAllUsers() { return userRepository.findAll(); }
 
@@ -57,8 +57,6 @@ public class AdminController {
         if (user.getRole() == null) user.setRole("student");
 
         User savedUser = userRepository.save(user);
-
-        // ✅ LOG IT
         logActivity(savedUser.getUsername(), "User created", savedUser.getRole());
 
         return ResponseEntity.ok(savedUser);
@@ -70,17 +68,14 @@ public class AdminController {
         if (user == null) return ResponseEntity.notFound().build();
 
         userRepository.deleteById(id);
-
-        // ✅ LOG IT
         logActivity(user.getUsername(), "User deleted", user.getRole());
 
         return ResponseEntity.ok("User deleted successfully");
     }
 
     // ==========================================
-    // 2. COURSE MANAGEMENT (Updated with Logging)
+    // 2. COURSE MANAGEMENT (✅ UPDATED FOR CLOUDINARY)
     // ==========================================
-
     @GetMapping("/courses")
     public List<Course> getAllCourses() { return courseRepository.findAll(); }
 
@@ -103,14 +98,13 @@ public class AdminController {
         course.setThemeColor(themeColor);
         course.setStatus("active");
 
+        // ✅ CHANGED: Upload to Cloudinary instead of local folder
         if (file != null && !file.isEmpty()) {
-            String imagePath = saveFile(file);
-            course.setImage(imagePath);
+            String imageUrl = cloudinaryService.uploadFile(file);
+            course.setImage(imageUrl);
         }
 
         courseRepository.save(course);
-
-        // ✅ LOG IT
         logActivity(course.getId(), "Course created", "System");
 
         return ResponseEntity.ok(course);
@@ -129,13 +123,12 @@ public class AdminController {
             existing.setDescription(description);
             existing.setThemeColor(themeColor);
 
+            // ✅ CHANGED: Upload to Cloudinary if a new file is sent
             if (file != null && !file.isEmpty()) {
-                String imagePath = saveFile(file);
-                existing.setImage(imagePath);
+                String imageUrl = cloudinaryService.uploadFile(file);
+                existing.setImage(imageUrl);
             }
             courseRepository.save(existing);
-
-            // ✅ LOG IT
             logActivity(existing.getId(), "Course updated", "System");
 
             return ResponseEntity.ok(existing);
@@ -146,17 +139,13 @@ public class AdminController {
     public ResponseEntity<?> deleteCourse(@PathVariable String id) {
         if (!courseRepository.existsById(id)) return ResponseEntity.notFound().build();
         courseRepository.deleteById(id);
-
-        // ✅ LOG IT
         logActivity(id, "Course deleted", "System");
-
         return ResponseEntity.ok("Course deleted successfully");
     }
 
     // ==========================================
-    // 3. SUBJECT MANAGEMENT (Updated with Logging)
+    // 3. SUBJECT MANAGEMENT
     // ==========================================
-
     @GetMapping("/subjects")
     public List<Subject> getSubjects(@RequestParam(required = false) String courseId) {
         if (courseId != null && !courseId.isEmpty()) {
@@ -182,8 +171,6 @@ public class AdminController {
         if (subject.getStatus() == null) subject.setStatus("active");
 
         subjectRepository.save(subject);
-
-        // ✅ LOG IT
         logActivity(subject.getCode(), "Subject created", "System");
 
         return ResponseEntity.ok(subject);
@@ -198,8 +185,6 @@ public class AdminController {
             existing.setStatus(subject.getStatus());
 
             subjectRepository.save(existing);
-
-            // ✅ LOG IT
             logActivity(code, "Subject updated", "System");
 
             return ResponseEntity.ok(existing);
@@ -210,25 +195,10 @@ public class AdminController {
     public ResponseEntity<?> deleteSubject(@PathVariable String code) {
         if (!subjectRepository.existsById(code)) return ResponseEntity.notFound().build();
         subjectRepository.deleteById(code);
-
-        // ✅ LOG IT
         logActivity(code, "Subject deleted", "System");
 
         return ResponseEntity.ok("Subject deleted successfully");
     }
 
-    // ==========================================
-    // 4. HELPER METHODS
-    // ==========================================
-    private String saveFile(MultipartFile file) {
-        try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-            return fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store file. Error: " + e.getMessage());
-        }
-    }
+    // ❌ REMOVED: Helper method `saveFile` is no longer needed!
 }

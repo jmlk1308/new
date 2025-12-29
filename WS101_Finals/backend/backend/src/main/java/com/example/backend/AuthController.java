@@ -5,10 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
-import java.nio.file.*;
+// ❌ REMOVED: import java.nio.file.*; (You don't need this anymore)
 
 @RestController
-// ✅ THIS LINE IS CRITICAL. It creates the "/api/auth" part of the URL.
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
@@ -19,35 +18,30 @@ public class AuthController {
     @Autowired
     private ActivityLogRepository logRepository;
 
-    // ✅ THIS LINE IS CRITICAL. It creates the "/login" part.
-    // Combined URL: /api/auth/login
+    // ✅ CHANGED: Inject the Cloudinary Service here
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
-        // 1. Find user directly from Database (Faster)
         User user = userRepository.findByUsername(username);
 
-        // 2. Check if user exists AND password matches
         if (user != null && user.getPassword().equals(password)) {
-
-            // 3. Log the login
             logRepository.save(new ActivityLog(user.getUsername(), "User Logged In", user.getRole()));
-
-            // 4. Return the user info
             return ResponseEntity.ok(user);
         } else {
             return ResponseEntity.status(401).body("Invalid username or password");
         }
     }
 
-
-    //
-// ... inside AuthController class ...
-
     // ==========================================
-    // ✅ ADD THIS MISSING METHOD TO FIX SAVING
+    // UPDATE USER PROFILE (Text Data)
     // ==========================================
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
@@ -56,12 +50,10 @@ public class AuthController {
             return ResponseEntity.notFound().build();
         }
 
-        // Update Username if provided
         if (updates.containsKey("username")) {
             user.setUsername((String) updates.get("username"));
         }
 
-        // Update Password if provided (and not empty)
         if (updates.containsKey("password")) {
             String newPass = (String) updates.get("password");
             if (newPass != null && !newPass.trim().isEmpty()) {
@@ -70,13 +62,14 @@ public class AuthController {
         }
 
         userRepository.save(user);
-
-        // Log the action
         logRepository.save(new ActivityLog(user.getUsername(), "Updated Profile", user.getRole()));
 
         return ResponseEntity.ok(user);
     }
 
+    // ==========================================
+    // ✅ CHANGED: UPLOAD PROFILE PHOTO (To Cloudinary)
+    // ==========================================
     @PostMapping("/users/{id}/photo")
     public ResponseEntity<?> uploadProfilePhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
@@ -84,29 +77,22 @@ public class AuthController {
             User user = userRepository.findById(id).orElse(null);
             if (user == null) return ResponseEntity.notFound().build();
 
-            // 2. Save File (Reuse logic from Admin/Professor controllers)
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path uploadPath = Paths.get("uploads/");
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            // 2. ✅ CHANGED: Upload to Cloudinary instead of local folder
+            // This returns a full URL like "https://res.cloudinary.com/..."
+            String imageUrl = cloudinaryService.uploadFile(file);
 
-            // 3. Update User Record
-            user.setProfileImage(fileName);
+            // 3. Update User Record with the URL
+            user.setProfileImage(imageUrl);
             userRepository.save(user);
 
             // 4. Log it
             logRepository.save(new ActivityLog(user.getUsername(), "Updated Profile Picture", user.getRole()));
 
-            // 5. Return the new filename so frontend can display it immediately
-            return ResponseEntity.ok(Map.of("message", "Upload successful", "image", fileName));
+            // 5. Return the new URL so frontend can display it immediately
+            return ResponseEntity.ok(Map.of("message", "Upload successful", "image", imageUrl));
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error uploading file: " + e.getMessage());
         }
     }
 }
-
-
-
-
-
