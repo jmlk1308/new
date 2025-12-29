@@ -3,51 +3,41 @@
 // ==========================================
 let courses = [];
 let currentIndex = 0;
+let autoPlayInterval; // Variable for auto-rotation
 
 const bgContainer = document.getElementById('bg-container');
 const cardTrack = document.getElementById('card-track');
 const textContent = document.getElementById('text-content');
 
-// Your Render Backend URL
+// Your Backend URL
 const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
+const API_URL = "https://new-ed9m.onrender.com/api/admin/courses";
 
 // ==========================================
-// 2. DATA FETCHING & PROCESSING
+// 2. DATA FETCHING
 // ==========================================
 async function fetchCourses() {
     try {
-        const response = await fetch('https://new-ed9m.onrender.com/api/admin/courses');
+        const response = await fetch(API_URL);
         if (!response.ok) throw new Error("Failed to fetch courses");
 
         const dbCourses = await response.json();
 
-        // Transform Database Data -> Frontend Format
+        // Process Data
         courses = dbCourses.map(c => {
-
-            // --- ✅ FINAL IMAGE FIX ---
             let imgPart = c.image || '';
             let finalUrl;
 
-            // CASE A: It is a Cloudinary/External Link
+            // Image Logic (Cloudinary vs Local)
             if (imgPart.startsWith('http')) {
-                // Force HTTPS to avoid "Mixed Content" errors
                 finalUrl = imgPart.replace('http://', 'https://');
-            }
-            // CASE B: It is an old Local File (Render)
-            else {
-                // Clean up the path
+            } else {
                 if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
                     imgPart = imgPart.substring(8);
                 }
                 if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
-
-                // Construct the local URL
                 finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
-
-            // Debugging: Print to console so we can check if it works
-            console.log(`Course: ${c.title}, Image URL: ${finalUrl}`);
-            // ---------------------------
 
             const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
@@ -57,15 +47,20 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // Apply the Clean URL
+                // We save the style strings here
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
         });
 
         if (courses.length > 0) {
+            // ✅ STEP 1: Create DOM Elements ONCE
+            renderCardsInitial();
+
+            // ✅ STEP 2: Start the System
             currentIndex = 0;
             updateCarousel();
+            startAutoPlay(); // Starts automatic animation
         } else {
             if(cardTrack) cardTrack.innerHTML = '<div style="color:white; text-align:center;">No courses available.</div>';
         }
@@ -76,56 +71,77 @@ async function fetchCourses() {
 }
 
 // ==========================================
-// 3. CAROUSEL LOGIC
+// 3. CAROUSEL RENDERING (The Fix)
 // ==========================================
-function updateCarousel() {
+
+// This function runs ONLY ONCE to build the HTML
+function renderCardsInitial() {
     if (!cardTrack) return;
-    cardTrack.innerHTML = '';
+    cardTrack.innerHTML = ''; // Clear loading state
 
-    const data = courses[currentIndex];
-
-    // 1. Update Background
-    const bg = document.createElement('div');
-    bg.className = 'bg-slide active';
-    bg.style = data.bgStyle;
-
-    if(bgContainer) {
-        bgContainer.innerHTML = '';
-        bgContainer.appendChild(bg);
-    }
-
-    // 2. Render Cards
-    courses.forEach((course, index) => {
-        let positionClass = 'hidden-card';
-        if (index === currentIndex) positionClass = 'active';
-        else if (index === (currentIndex - 1 + courses.length) % courses.length) positionClass = 'prev';
-        else if (index === (currentIndex + 1) % courses.length) positionClass = 'next';
-
+    courses.forEach((course) => {
         const card = document.createElement('div');
-        card.className = `course-card ${positionClass}`;
-
-        // This applies the style we calculated in fetchCourses
+        // Initial class is hidden
+        card.className = 'course-card hidden-card';
         card.style = course.cardStyle;
 
-        // Logo Icon
+        // Add Logo
         const logoDiv = document.createElement('div');
         logoDiv.className = 'card-logo';
         logoDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg>';
 
         card.appendChild(logoDiv);
         cardTrack.appendChild(card);
+    });
+}
 
-        // Handle Background Transition
+// This function runs EVERY TIME you click Next/Prev
+// It only changes CLASSES, so CSS transitions work!
+function updateCarousel() {
+    if (!cardTrack) return;
+
+    // 1. Get the existing cards from the DOM
+    const cardElements = Array.from(cardTrack.children);
+    const data = courses[currentIndex];
+
+    // 2. Update Classes for Animation
+    cardElements.forEach((card, index) => {
+        let positionClass = 'hidden-card';
+
         if (index === currentIndex) {
-            setTimeout(() => card.classList.add('active'), 10);
+            positionClass = 'active';
+        } else if (index === (currentIndex - 1 + courses.length) % courses.length) {
+            positionClass = 'prev';
+        } else if (index === (currentIndex + 1) % courses.length) {
+            positionClass = 'next';
         }
+
+        // Apply the class (This triggers the CSS transition)
+        card.className = `course-card ${positionClass}`;
     });
 
-    // 3. Update Text
+    // 3. Update Background (with fade)
+    if(bgContainer) {
+        const bg = document.createElement('div');
+        bg.className = 'bg-slide';
+        bg.style = data.bgStyle;
+        bgContainer.appendChild(bg);
+
+        // Trigger fade in
+        setTimeout(() => bg.classList.add('active'), 10);
+
+        // Remove old backgrounds
+        if (bgContainer.children.length > 2) {
+            bgContainer.removeChild(bgContainer.children[0]);
+        }
+    }
+
+    // 4. Update Text
     const titleEl = document.getElementById('course-title');
     const descEl = document.getElementById('course-desc');
 
     if (textContent && titleEl && descEl) {
+        // Simple fade out/in effect for text
         textContent.style.opacity = '0';
         textContent.style.transform = 'translateY(20px)';
 
@@ -140,7 +156,21 @@ function updateCarousel() {
     }
 }
 
-// Helper for Color Brightness
+// ==========================================
+// 4. AUTO PLAY & EVENTS
+// ==========================================
+function startAutoPlay() {
+    stopAutoPlay(); // Clear existing to prevent duplicates
+    autoPlayInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % courses.length;
+        updateCarousel();
+    }, 5000); // Change slide every 5 seconds
+}
+
+function stopAutoPlay() {
+    if (autoPlayInterval) clearInterval(autoPlayInterval);
+}
+
 function adjustBrightness(col, amt) {
     let usePound = false;
     if (col[0] === "#") {
@@ -157,9 +187,7 @@ function adjustBrightness(col, amt) {
     return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
 }
 
-// ==========================================
-// 4. EVENT LISTENERS
-// ==========================================
+// Event Listeners
 document.addEventListener('DOMContentLoaded', fetchCourses);
 
 const prevBtn = document.getElementById('prevBtn');
@@ -167,18 +195,21 @@ const nextBtn = document.getElementById('nextBtn');
 const viewLessonBtn = document.getElementById('viewLessonBtn');
 
 if (prevBtn) prevBtn.onclick = () => {
+    stopAutoPlay(); // Pause if user clicks
     currentIndex = (currentIndex - 1 + courses.length) % courses.length;
     updateCarousel();
+    startAutoPlay(); // Restart timer
 };
 
 if (nextBtn) nextBtn.onclick = () => {
+    stopAutoPlay();
     currentIndex = (currentIndex + 1) % courses.length;
     updateCarousel();
+    startAutoPlay();
 };
 
 if (viewLessonBtn) viewLessonBtn.onclick = () => {
     if (courses[currentIndex]) {
-        // Redirect to Subject Dashboard with Course ID
         window.location.href = `dashboard.html?course=${courses[currentIndex].id}`;
     }
 };
