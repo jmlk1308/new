@@ -8,15 +8,17 @@ const bgContainer = document.getElementById('bg-container');
 const cardTrack = document.getElementById('card-track');
 const textContent = document.getElementById('text-content');
 
-// Your Render Backend URL
-const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
+// ✅ FIX 1: Use Relative Path (Points to YOUR current site automatically)
+const IMG_BASE_URL = "/uploads/";
 
 // ==========================================
 // 2. DATA FETCHING & PROCESSING
 // ==========================================
 async function fetchCourses() {
     try {
-        const response = await fetch('https://new-ed9m.onrender.com/api/admin/courses');
+        // ✅ FIX 2: Use Relative Path for API
+        const response = await fetch('/api/admin/courses');
+
         if (!response.ok) throw new Error("Failed to fetch courses");
 
         const dbCourses = await response.json();
@@ -24,30 +26,29 @@ async function fetchCourses() {
         // Transform Database Data -> Frontend Format
         courses = dbCourses.map(c => {
 
-            // --- ✅ FINAL IMAGE FIX ---
+            // --- IMAGE LOGIC ---
             let imgPart = c.image || '';
             let finalUrl;
 
-            // CASE A: It is a Cloudinary/External Link
+            // CASE A: Cloudinary / External Link
             if (imgPart.startsWith('http')) {
-                // Force HTTPS to avoid "Mixed Content" errors
+                // Force HTTPS
                 finalUrl = imgPart.replace('http://', 'https://');
             }
-            // CASE B: It is an old Local File (Render)
+            // CASE B: Local File (Render)
             else {
-                // Clean up the path
+                // Clean the path
                 if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
                     imgPart = imgPart.substring(8);
                 }
                 if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
 
-                // Construct the local URL
+                // Combine with Base URL
                 finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
 
-            // Debugging: Print to console so we can check if it works
-            console.log(`Course: ${c.title}, Image URL: ${finalUrl}`);
-            // ---------------------------
+            // Debugging: Check the Console to see what URL is being used!
+            console.log(`Course: ${c.title}, Final URL: ${finalUrl}`);
 
             const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
@@ -57,7 +58,7 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // Apply the Clean URL
+                // Apply Style
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
@@ -103,8 +104,6 @@ function updateCarousel() {
 
         const card = document.createElement('div');
         card.className = `course-card ${positionClass}`;
-
-        // This applies the style we calculated in fetchCourses
         card.style = course.cardStyle;
 
         // Logo Icon
@@ -115,7 +114,6 @@ function updateCarousel() {
         card.appendChild(logoDiv);
         cardTrack.appendChild(card);
 
-        // Handle Background Transition
         if (index === currentIndex) {
             setTimeout(() => card.classList.add('active'), 10);
         }
@@ -140,7 +138,6 @@ function updateCarousel() {
     }
 }
 
-// Helper for Color Brightness
 function adjustBrightness(col, amt) {
     let usePound = false;
     if (col[0] === "#") {
@@ -178,7 +175,6 @@ if (nextBtn) nextBtn.onclick = () => {
 
 if (viewLessonBtn) viewLessonBtn.onclick = () => {
     if (courses[currentIndex]) {
-        // Redirect to Subject Dashboard with Course ID
         window.location.href = `dashboard.html?course=${courses[currentIndex].id}`;
     }
 };
