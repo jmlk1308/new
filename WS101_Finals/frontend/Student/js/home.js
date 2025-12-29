@@ -16,6 +16,8 @@ const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
 // ==========================================
 //
 
+//
+
 async function fetchCourses() {
     try {
         const response = await fetch('https://new-ed9m.onrender.com/api/admin/courses');
@@ -25,28 +27,27 @@ async function fetchCourses() {
 
         // Transform Database Data -> Frontend Format
         courses = dbCourses.map(c => {
-            // --- ✅ FIXED IMAGE LOGIC START ---
+
+            // --- ✅ IMAGE FIX START ---
             let imgPart = c.image || '';
             let finalUrl;
 
             // 1. Check if it is a Cloudinary/External URL
             if (imgPart.startsWith('http')) {
-                finalUrl = imgPart;
-            } else {
-                // 2. Fallback for old local images
-                // Remove 'uploads/' if it was saved in the DB string
+                // 🔴 THE FIX: Force 'https' to prevent browser blocking
+                finalUrl = imgPart.replace('http://', 'https://');
+            }
+            // 2. Fallback for old local images
+            else {
                 if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
                     imgPart = imgPart.substring(8);
                 }
-                // Remove leading slash if present
                 if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
 
-                // Use the local base URL
                 finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
-            // --- ✅ FIXED IMAGE LOGIC END ---
+            // --- ✅ IMAGE FIX END ---
 
-            // Theme Color Logic
             const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
 
@@ -55,16 +56,16 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // Apply the corrected 'finalUrl' here
+                // Apply the fixed URL
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
         });
 
         if (courses.length > 0) {
+            currentIndex = 0; // Reset to start
             updateCarousel();
         } else {
-            // Handle empty state
             cardTrack.innerHTML = '<div style="color:white; text-align:center;">No courses available.</div>';
         }
 
