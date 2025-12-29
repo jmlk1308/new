@@ -121,3 +121,59 @@ nav { background-color: #2563EB; color: white; height: 4rem; display: flex; alig
         padding: 1rem;
     }
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Add to bottom of Subject.css)
+   ========================================= */
+
+@media (max-width: 768px) {
+    /* Stack Header */
+    .sub-header .max-w-7xl {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Scrollable Tabs */
+    .tabs-container {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        flex-shrink: 0; /* Prevent squishing */
+    }
+
+    /* 1 Column for Files */
+    .materials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .material-card {
+        flex-direction: row; /* Horizontal card for mobile list style */
+        align-items: center;
+        text-align: left;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .file-icon {
+        font-size: 2rem;
+        margin-bottom: 0;
+    }
+
+    .file-info {
+        margin-bottom: 0;
+        flex-grow: 1;
+    }
+
+    .open-btn {
+        width: auto;
+        padding: 0.5rem 1rem;
+    }
+}

@@ -153,3 +153,63 @@ nav {
         gap: 0.25rem;
     }
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Add to bottom of dashboard.css)
+   ========================================= */
+
+/* TABLETS */
+@media (max-width: 1024px) {
+    .grid {
+        /* Allow cards to shrink smaller than 400px */
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+/* MOBILE PHONES */
+@media (max-width: 768px) {
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+
+    /* Navbar adjustments */
+    .brand-text { font-size: 1rem; }
+    .profile-container span { display: none; } /* Hide Name, show only Avatar */
+
+    /* Stack the Header (Title + Search) */
+    .sub-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .search-box {
+        width: 100%; /* Full width search */
+    }
+
+    /* Filters - make scrolling if many items */
+    .filter-container {
+        margin: 1rem 0;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .filter-btn {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Force 1 Column Grid */
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        flex-direction: column; /* Stack card content */
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .btn-view {
+        width: 100%; /* Full width button */
+        text-align: center;
+    }
+}

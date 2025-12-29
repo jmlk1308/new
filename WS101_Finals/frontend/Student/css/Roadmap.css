@@ -124,3 +124,42 @@ body { font-family: 'Segoe UI', sans-serif; background-color: #F8F9FD; }
         font-size: 1rem;
     }
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Add to bottom of Roadmap.css)
+   ========================================= */
+
+@media (max-width: 768px) {
+    .roadmap-container {
+        padding: 1rem 0;
+    }
+
+    /* Move Line to the Left */
+    .timeline-line {
+        left: 20px;
+        transform: none;
+    }
+
+    /* Fix Markers to the Left */
+    .module-marker {
+        left: 20px;
+        transform: translateX(-50%);
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+
+    /* Normalize Rows (Remove Zig-Zag) */
+    .module-row, .module-row.left, .module-row.right {
+        flex-direction: column; /* Stack vertically */
+        align-items: flex-start;
+        margin-bottom: 3rem;
+    }
+
+    /* Adjust Cards to sit right of the line */
+    .module-card {
+        width: calc(100% - 60px); /* Full width minus space for line */
+        margin-left: 50px; /* Push right */
+        margin-right: 0 !important; /* Reset any right margins */
+    }
+}

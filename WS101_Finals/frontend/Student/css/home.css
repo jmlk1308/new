@@ -168,3 +168,81 @@ svg { fill: currentColor; }
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================
+   RESPONSIVE DESIGN (Add to bottom of home.css)
+   ========================================= */
+
+/* TABLETS (Portrait) & MOBILE */
+@media (max-width: 1024px) {
+    .grid-layout {
+        grid-template-columns: 1fr; /* Stack text on top of carousel */
+        gap: 3rem;
+        text-align: center;
+        padding-top: 6rem; /* Make space for navbar */
+    }
+
+    .hero-desc {
+        margin: 0 auto 2rem auto; /* Center the description */
+        border-left: none;
+        border-bottom: 4px solid #3b82f6; /* Move accent line to bottom */
+        padding-left: 0;
+        padding-bottom: 1rem;
+    }
+
+    /* Adjust Carousel Position */
+    .card-perspective {
+        height: 350px;
+        margin-bottom: 2rem;
+    }
+}
+
+/* MOBILE PHONES */
+@media (max-width: 600px) {
+    .hero-title {
+        font-size: 2.5rem; /* Smaller Title */
+    }
+
+    /* Navbar: Hide links on small screens to prevent overlap */
+    .nav-links {
+        display: none;
+    }
+
+    /* Flatten the 3D Carousel for easier mobile use */
+    .card-perspective {
+        perspective: none; /* Remove 3D depth */
+    }
+
+    .course-card {
+        width: 260px;
+        height: 300px;
+        /* Disable complex 3D transforms */
+        transform: scale(0.9) !important;
+        opacity: 0;
+        left: 50%;
+        margin-left: -130px; /* Center manually */
+    }
+
+    .course-card.active {
+        opacity: 1;
+        transform: scale(1) !important;
+        z-index: 20;
+    }
+
+    /* Hide the side cards on mobile to avoid screen overflow */
+    .course-card.prev, .course-card.next {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Adjust controls */
+    .carousel-controls {
+        bottom: -1rem;
+    }
+
+    /* About Section */
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
