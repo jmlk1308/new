@@ -180,51 +180,54 @@ async function loadCourses() {
         }
 
         courses.forEach(course => {
-                // ---------------------------------------------------------------
-                // ✅ NEW IMAGE LOGIC STARTS HERE
-                // ---------------------------------------------------------------
-                let imgDisplay = '';
-                let imgPath = course.image || '';
+            const theme = course.themeColor || '#3182ce';
+            let backgroundStyle = `background: ${theme};`;
 
-                if (imgPath) {
-                    let finalUrl;
-                    if (imgPath.startsWith('http')) {
-                        finalUrl = imgPath;
-                    } else {
-                        if (imgPath.startsWith('uploads/') || imgPath.startsWith('uploads\\')) {
-                            imgPath = imgPath.substring(8);
-                        }
-                        if (imgPath.startsWith('/')) imgPath = imgPath.substring(1);
-                        finalUrl = `https://new-ed9m.onrender.com/uploads/${imgPath}`;
-                    }
+            // ✅ CLOUDINARY FIX: Handle both new URLs and old local files
+            if (course.image) {
+                let imageUrl;
 
-                    imgDisplay = `<img src="${finalUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">`;
+                // 1. Check if it is already a full link (Cloudinary)
+                if (course.image.startsWith('http')) {
+                    imageUrl = course.image;
                 } else {
-                    imgDisplay = '<div style="width:50px; height:50px; background:#eee; border-radius:4px;"></div>';
-                }
-                // ---------------------------------------------------------------
-                // ✅ NEW IMAGE LOGIC ENDS HERE
-                // ---------------------------------------------------------------
+                    // 2. Fallback for old local images
+                    let cleanImage = course.image;
+                    if (cleanImage.startsWith('uploads/') || cleanImage.startsWith('uploads\\')) {
+                        cleanImage = cleanImage.substring(8);
+                    }
+                    if (cleanImage.startsWith('/')) cleanImage = cleanImage.substring(1);
 
-                const row = `
-                    <tr>
-                        <td>${imgDisplay}</td>
-                        <td>${course.id}</td>
-                        <td>${course.title}</td>
-                        <td><span class="status-badge status-${course.status}">${course.status}</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-icon" onclick="editCourse('${course.id}')"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon delete" onclick="deleteCourse('${course.id}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
+                    imageUrl = `https://new-ed9m.onrender.com/uploads/${cleanImage}`;
+                }
+
+                backgroundStyle = `background-image: url('${imageUrl}'); background-size: cover; background-position: center;`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'course-card';
+            card.innerHTML = `
+                <div class="course-header-banner" style="${backgroundStyle}">
+                    <div class="course-code-badge">${course.id}</div>
+                </div>
+                <div class="course-body">
+                    <h3 class="course-title">${course.title}</h3>
+                    <p class="course-description" title="${course.description || ''}">
+                        ${course.description || 'No description.'}
+                    </p>
+                    <div class="course-footer">
+                        <button class="action-btn-icon edit-btn" onclick="openEditCourseModal('${course.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn-icon delete-btn" onclick="deleteCourse('${course.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
 
         loadCoursesForDropdown(); // Refresh dropdowns
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.error("Error loading courses:", err);
+    }
 }
 
 function openAddCourseModal() {
