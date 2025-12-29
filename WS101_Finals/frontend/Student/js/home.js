@@ -14,6 +14,8 @@ const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
 // ==========================================
 // 2. DATA FETCHING & PROCESSING
 // ==========================================
+//
+
 async function fetchCourses() {
     try {
         const response = await fetch('https://new-ed9m.onrender.com/api/admin/courses');
@@ -22,24 +24,29 @@ async function fetchCourses() {
         const dbCourses = await response.json();
 
         // Transform Database Data -> Frontend Format
-        // --- IMAGE LOGIC ---
+        courses = dbCourses.map(c => {
+            // --- ✅ FIXED IMAGE LOGIC START ---
             let imgPart = c.image || '';
             let finalUrl;
 
-            // ✅ NEW LOGIC: Check if it is a Cloudinary URL
+            // 1. Check if it is a Cloudinary/External URL
             if (imgPart.startsWith('http')) {
                 finalUrl = imgPart;
             } else {
-                // Fallback for old local images
+                // 2. Fallback for old local images
+                // Remove 'uploads/' if it was saved in the DB string
                 if (imgPart.startsWith('uploads/') || imgPart.startsWith('uploads\\')) {
                     imgPart = imgPart.substring(8);
                 }
+                // Remove leading slash if present
                 if (imgPart.startsWith('/')) imgPart = imgPart.substring(1);
 
+                // Use the local base URL
                 finalUrl = imgPart ? `${IMG_BASE_URL}${imgPart}` : 'https://via.placeholder.com/280x350?text=No+Image';
             }
+            // --- ✅ FIXED IMAGE LOGIC END ---
 
-            // ... rest of the color logic stays the same ...
+            // Theme Color Logic
             const color = c.themeColor || '#3b82f6';
             const darkerColor = adjustBrightness(color, -50);
 
@@ -48,16 +55,17 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
+                // Apply the corrected 'finalUrl' here
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
         });
 
-        // Only start the carousel if we have data
         if (courses.length > 0) {
-            init();
+            updateCarousel();
         } else {
-            console.warn("No courses found in database.");
+            // Handle empty state
+            cardTrack.innerHTML = '<div style="color:white; text-align:center;">No courses available.</div>';
         }
 
     } catch (error) {
