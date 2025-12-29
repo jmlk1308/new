@@ -1,15 +1,17 @@
+//
+
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
 let courses = [];
 let currentIndex = 0;
-let autoPlayInterval; // Variable for auto-rotation
+let autoPlayInterval;
 
 const bgContainer = document.getElementById('bg-container');
 const cardTrack = document.getElementById('card-track');
 const textContent = document.getElementById('text-content');
 
-// Your Backend URL
+// Your Backend URLs
 const IMG_BASE_URL = "https://new-ed9m.onrender.com/uploads/";
 const API_URL = "https://new-ed9m.onrender.com/api/admin/courses";
 
@@ -47,20 +49,17 @@ async function fetchCourses() {
                 title: c.title,
                 desc: c.description,
                 color: color,
-                // We save the style strings here
+                // Card Style
                 cardStyle: `background-color: ${color}; background-image: url('${finalUrl}'), linear-gradient(135deg, ${darkerColor} 80%, ${color} 100%);`,
                 bgStyle: `background-color: #000; background-image: url('${finalUrl}'), linear-gradient(to right, #000 0%, ${color} 100%);`
             };
         });
 
         if (courses.length > 0) {
-            // ✅ STEP 1: Create DOM Elements ONCE
-            renderCardsInitial();
-
-            // ✅ STEP 2: Start the System
+            renderCardsInitial(); // Create cards once
             currentIndex = 0;
-            updateCarousel();
-            startAutoPlay(); // Starts automatic animation
+            updateCarousel();     // Apply classes & listeners
+            startAutoPlay();      // Start timer
         } else {
             if(cardTrack) cardTrack.innerHTML = '<div style="color:white; text-align:center;">No courses available.</div>';
         }
@@ -71,17 +70,17 @@ async function fetchCourses() {
 }
 
 // ==========================================
-// 3. CAROUSEL RENDERING (The Fix)
+// 3. CAROUSEL RENDERING
 // ==========================================
 
-// This function runs ONLY ONCE to build the HTML
 function renderCardsInitial() {
     if (!cardTrack) return;
-    cardTrack.innerHTML = ''; // Clear loading state
+    cardTrack.innerHTML = '';
 
-    courses.forEach((course) => {
+    courses.forEach((course, index) => {
         const card = document.createElement('div');
-        // Initial class is hidden
+        // We add the index as a data attribute to track it easily
+        card.dataset.index = index;
         card.className = 'course-card hidden-card';
         card.style = course.cardStyle;
 
@@ -95,53 +94,68 @@ function renderCardsInitial() {
     });
 }
 
-// This function runs EVERY TIME you click Next/Prev
-// It only changes CLASSES, so CSS transitions work!
 function updateCarousel() {
     if (!cardTrack) return;
 
-    // 1. Get the existing cards from the DOM
     const cardElements = Array.from(cardTrack.children);
     const data = courses[currentIndex];
 
-    // 2. Update Classes for Animation
+    // 1. Update Classes & Click Events
     cardElements.forEach((card, index) => {
         let positionClass = 'hidden-card';
+        // Reset click listener
+        card.onclick = null;
+        card.style.cursor = 'default';
 
         if (index === currentIndex) {
             positionClass = 'active';
+            // If active, clicking takes you to dashboard (or you can remove this if you prefer the button)
+            card.onclick = () => {
+                 window.location.href = `dashboard.html?course=${courses[currentIndex].id}`;
+            };
+            card.style.cursor = 'pointer';
+
         } else if (index === (currentIndex - 1 + courses.length) % courses.length) {
             positionClass = 'prev';
+            // ✅ TOUCH SIDE TO MOVE: Click Left -> Go Prev
+            card.onclick = () => {
+                stopAutoPlay();
+                movePrev();
+                startAutoPlay();
+            };
+            card.style.cursor = 'pointer';
+
         } else if (index === (currentIndex + 1) % courses.length) {
             positionClass = 'next';
+            // ✅ TOUCH SIDE TO MOVE: Click Right -> Go Next
+            card.onclick = () => {
+                stopAutoPlay();
+                moveNext();
+                startAutoPlay();
+            };
+            card.style.cursor = 'pointer';
         }
 
-        // Apply the class (This triggers the CSS transition)
         card.className = `course-card ${positionClass}`;
     });
 
-    // 3. Update Background (with fade)
+    // 2. Update Background
     if(bgContainer) {
         const bg = document.createElement('div');
         bg.className = 'bg-slide';
         bg.style = data.bgStyle;
         bgContainer.appendChild(bg);
-
-        // Trigger fade in
         setTimeout(() => bg.classList.add('active'), 10);
-
-        // Remove old backgrounds
         if (bgContainer.children.length > 2) {
             bgContainer.removeChild(bgContainer.children[0]);
         }
     }
 
-    // 4. Update Text
+    // 3. Update Text
     const titleEl = document.getElementById('course-title');
     const descEl = document.getElementById('course-desc');
 
     if (textContent && titleEl && descEl) {
-        // Simple fade out/in effect for text
         textContent.style.opacity = '0';
         textContent.style.transform = 'translateY(20px)';
 
@@ -157,14 +171,24 @@ function updateCarousel() {
 }
 
 // ==========================================
-// 4. AUTO PLAY & EVENTS
+// 4. CONTROLS & HELPERS
 // ==========================================
+
+function movePrev() {
+    currentIndex = (currentIndex - 1 + courses.length) % courses.length;
+    updateCarousel();
+}
+
+function moveNext() {
+    currentIndex = (currentIndex + 1) % courses.length;
+    updateCarousel();
+}
+
 function startAutoPlay() {
-    stopAutoPlay(); // Clear existing to prevent duplicates
+    stopAutoPlay();
     autoPlayInterval = setInterval(() => {
-        currentIndex = (currentIndex + 1) % courses.length;
-        updateCarousel();
-    }, 5000); // Change slide every 5 seconds
+        moveNext();
+    }, 5000);
 }
 
 function stopAutoPlay() {
@@ -195,16 +219,14 @@ const nextBtn = document.getElementById('nextBtn');
 const viewLessonBtn = document.getElementById('viewLessonBtn');
 
 if (prevBtn) prevBtn.onclick = () => {
-    stopAutoPlay(); // Pause if user clicks
-    currentIndex = (currentIndex - 1 + courses.length) % courses.length;
-    updateCarousel();
-    startAutoPlay(); // Restart timer
+    stopAutoPlay();
+    movePrev();
+    startAutoPlay();
 };
 
 if (nextBtn) nextBtn.onclick = () => {
     stopAutoPlay();
-    currentIndex = (currentIndex + 1) % courses.length;
-    updateCarousel();
+    moveNext();
     startAutoPlay();
 };
 
